@@ -374,7 +374,7 @@
                 tbody.innerHTML += `
                     <tr class="border-b hover:bg-gray-50">
                         <td class="p-3 font-semibold text-emerald-900">${s.caseNum}</td>
-                        <td class="p-3">${s.datetime.replace('T', ' الوقت: ')}</td>
+                        <td class="p-3">${s.datetime ? s.datetime.replace('T', ' الوقت: ') : '-'}</td>
                         <td class="p-3">${s.place}</td>
                         <td class="p-3 text-center">
                             <button onclick="deleteRecord('sessions', ${s.id})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash-alt"></i></button>
@@ -386,13 +386,18 @@
 
         async function saveSession(e) {
             e.preventDefault();
-            const caseNum = document.getElementById('session-case').value;
+            const caseNum = document.getElementById('session-case').value.trim();
             const datetime = document.getElementById('session-datetime').value;
-            const place = document.getElementById('session-place').value;
+            const place = document.getElementById('session-place').value.trim();
 
-            await supabaseClient.from('sessions').insert([{ caseNum, datetime, place }]);
-            document.getElementById('session-form').reset();
-            loadSessions();
+            const { error } = await supabaseClient.from('sessions').insert([{ caseNum, datetime, place }]);
+            
+            if (error) {
+                alert('خطأ في حفظ الموعد سحابياً: ' + error.message);
+            } else {
+                document.getElementById('session-form').reset();
+                loadSessions();
+            }
         }
 
         // --- ملاحظات الوسيط ---
@@ -402,6 +407,7 @@
             grid.innerHTML = '';
             if (error || !data) return;
 
+            data.exports = data;
             data.forEach(n => {
                 grid.innerHTML += `
                     <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 shadow-sm relative space-y-2">
@@ -417,10 +423,14 @@
 
         async function saveNote(e) {
             e.preventDefault();
-            const caseNum = document.getElementById('note-case').value;
-            const content = document.getElementById('note-content').value;
+            const caseNum = document.getElementById('note-case').value.trim();
+            const content = document.getElementById('note-content').value.trim();
 
-            await supabaseClient.from('messages').insert([{ caseNum: "ملاحظة: " + caseNum, content, createdAt: new Date().toLocaleDateString() }]);
+            const { error } = await supabaseClient.from('notes').insert([{ caseNum, content }]);
+            if (error) {
+                // إذا لم يكن جدول notes موجوداً، نحفظها في messages احتياطياً
+                await supabaseClient.from('messages').insert([{ caseNum: "ملاحظة: " + caseNum, content, createdAt: new Date().toLocaleDateString() }]);
+            }
             document.getElementById('note-form').reset();
             loadNotes();
         }
@@ -453,7 +463,7 @@
         async function sendChatMessage(e) {
             e.preventDefault();
             const sender = document.getElementById('chat-sender').value;
-            const text = document.getElementById('chat-input').value;
+            const text = document.getElementById('chat-input').value.trim();
             const timeNow = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
             await supabaseClient.from('messages').insert([{ 
