@@ -13,7 +13,7 @@
 </head>
 <body class="bg-gray-100 font-sans text-gray-800">
 
-    <!-- نافذة إعداد المفاتيح السحابية (تظهر أول مرة لربط الهاتف والحاسوب) -->
+    <!-- نافذة إعداد المفاتيح السحابية -->
     <div id="config-modal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 hidden">
         <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4">
             <h2 class="text-xl font-bold text-emerald-900 flex items-center gap-2">
@@ -244,7 +244,7 @@
         </main>
     </div>
 
-    <!-- كود الجافاسكريبت والربط السحابي الشامل -->
+    <!-- كود الجافاسكريبت والربط السحابي الشامل الموحد -->
     <script>
         let supabaseClient = null;
         let unreadCount = 0;
@@ -309,7 +309,7 @@
             loadChatMessages();
         }
 
-        // --- 1. إدارة القضايا (سحابي) ---
+        // --- 1. القضايا سحابياً ---
         async function loadCases() {
             if(!supabaseClient) return;
             const { data, error } = await supabaseClient.from('cases').select('*').order('id', { ascending: false });
@@ -390,7 +390,7 @@
             loadCases();
         }
 
-        // --- 2. إدارة الجلسات والمواعيد (سحابي عبر جدول sessions) ---
+        // --- 2. الجلسات سحابياً ---
         async function loadSessions() {
             if(!supabaseClient) return;
             const { data, error } = await supabaseClient.from('sessions').select('*').order('id', { ascending: false });
@@ -445,7 +445,7 @@
             document.getElementById('session-cancel-btn').classList.add('hidden');
         }
 
-        // --- 3. ملاحظات الوسيط (سحابي عبر جدول notes) ---
+        // --- 3. الملاحظات سحابياً ---
         async function loadNotes() {
             if(!supabaseClient) return;
             const { data, error } = await supabaseClient.from('notes').select('*').order('id', { ascending: false });
@@ -457,9 +457,9 @@
                 grid.innerHTML += `
                     <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 shadow-sm relative space-y-2">
                         <div class="flex justify-between items-center">
-                            <span class="font-bold text-emerald-900 text-sm"><i class="fas fa-bookmark text-amber-600"></i> ${n.case_num || n.caseNum || 'ملاحظة'}</span>
+                            <span class="font-bold text-emerald-900 text-sm"><i class="fas fa-bookmark text-amber-600"></i> ${n.case_num || 'ملاحظة'}</span>
                             <div class="space-x-2 space-x-reverse">
-                                <button onclick="editNote(${n.id}, '${n.case_num || n.caseNum || ''}', \`${n.content}\`)" class="text-blue-600 hover:text-blue-800 text-xs" title="تعديل"><i class="fas fa-edit"></i></button>
+                                <button onclick="editNote(${n.id}, '${n.case_num || ''}', \`${n.content}\`)" class="text-blue-600 hover:text-blue-800 text-xs" title="تعديل"><i class="fas fa-edit"></i></button>
                                 <button onclick="deleteCloudRecord('notes', ${n.id})" class="text-red-500 hover:text-red-700 text-xs" title="حذف"><i class="fas fa-trash-alt"></i></button>
                             </div>
                         </div>
@@ -499,7 +499,7 @@
             document.getElementById('note-cancel-btn').classList.add('hidden');
         }
 
-        // --- 4. محادثة القاضي والوسيط (سحابي عبر جدول chat) ---
+        // --- 4. المحادثات سحابياً ---
         async function loadChatMessages() {
             if(!supabaseClient) return;
             const { data, error } = await supabaseClient.from('chat').select('*').order('id', { ascending: true });
@@ -571,7 +571,7 @@
             }
         }
 
-        // --- حذف سحابي عام ---
+        // --- حذف عام ---
         async function deleteCloudRecord(table, id) {
             if(confirm('هل أنت متأكد من الحذف سحابياً؟')) {
                 await supabaseClient.from(table).delete().eq('id', id);
