@@ -363,21 +363,22 @@
             loadCases();
         }
 
-        // --- إدارة الجلسات والمواعيد (متوافق مع case_num) ---
+        // --- إدارة الجلسات والمواعيد (محفوظة في جدول messages المضمون) ---
         async function loadSessions() {
-            const { data, error } = await supabaseClient.from('sessions').select('*').order('id', { ascending: false });
+            const { data, error } = await supabaseClient.from('messages').select('*').order('id', { ascending: false });
             const tbody = document.getElementById('sessions-list');
             tbody.innerHTML = '';
             if (error || !data) return;
 
-            data.forEach(s => {
+            const sessions = data.filter(m => m.caseNum && m.caseNum.startsWith('جلسة:'));
+            sessions.forEach(s => {
                 tbody.innerHTML += `
                     <tr class="border-b hover:bg-gray-50">
-                        <td class="p-3 font-semibold text-emerald-900">${s.case_num || s.caseNum || '-'}</td>
-                        <td class="p-3">${s.datetime ? s.datetime.replace('T', ' الوقت: ') : '-'}</td>
-                        <td class="p-3">${s.place || '-'}</td>
+                        <td class="p-3 font-semibold text-emerald-900">${s.caseNum.replace('جلسة: ', '')}</td>
+                        <td class="p-3">${s.createdAt || '-'}</td>
+                        <td class="p-3">${s.content || '-'}</td>
                         <td class="p-3 text-center">
-                            <button onclick="deleteRecord('sessions', ${s.id})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash-alt"></i></button>
+                            <button onclick="deleteRecord('messages', ${s.id})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash-alt"></i></button>
                         </td>
                     </tr>
                 `;
@@ -386,14 +387,18 @@
 
         async function saveSession(e) {
             e.preventDefault();
-            const case_num = document.getElementById('session-case').value.trim();
-            const datetime = document.getElementById('session-datetime').value;
+            const caseNum = document.getElementById('session-case').value.trim();
+            const datetime = document.getElementById('session-datetime').value.replace('T', ' الوقت: ');
             const place = document.getElementById('session-place').value.trim();
 
-            const { error } = await supabaseClient.from('sessions').insert([{ case_num, datetime, place }]);
+            const { error } = await supabaseClient.from('messages').insert([{ 
+                caseNum: "جلسة: " + caseNum, 
+                content: place, 
+                createdAt: datetime 
+            }]);
             
             if (error) {
-                alert('خطأ في حفظ الموعد سحابياً: ' + error.message);
+                alert('خطأ في الحفظ: ' + error.message);
             } else {
                 document.getElementById('session-form').reset();
                 loadSessions();
@@ -411,7 +416,7 @@
                 grid.innerHTML += `
                     <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 shadow-sm relative space-y-2">
                         <div class="flex justify-between items-center">
-                            <span class="font-bold text-emerald-900 text-sm"><i class="fas fa-bookmark text-amber-600"></i> ${n.caseNum || n.case_num || 'ملاحظة'}</span>
+                            <span class="font-bold text-emerald-900 text-sm"><i class="fas fa-bookmark text-amber-600"></i> ${n.caseNum || 'ملاحظة'}</span>
                             <button onclick="deleteRecord('notes', ${n.id})" class="text-red-500 hover:text-red-700 text-xs"><i class="fas fa-trash-alt"></i> حذف</button>
                         </div>
                         <p class="text-gray-700 text-sm whitespace-pre-wrap">${n.content}</p>
@@ -440,7 +445,8 @@
             chatBox.innerHTML = '';
             if (error || !data) return;
 
-            data.forEach(m => {
+            const chatMsgs = data.filter(m => m.caseNum && !m.caseNum.startsWith('جلسة:'));
+            chatMsgs.forEach(m => {
                 const isJudge = m.caseNum && m.caseNum.includes('القاضي');
                 chatBox.innerHTML += `
                     <div class="p-3 rounded-xl border max-w-lg ${isJudge ? 'bg-blue-50 border-blue-200 mr-auto text-left' : 'bg-white border-gray-200 ml-auto'}">
