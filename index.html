@@ -4,30 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>محفظة الوسيط القضائي - LegalTech</title>
-    <!-- مكتبة Tailwind CSS للتصميم الجميل -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- مكتبة Supabase للاتصال السحابي -->
+    <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="bg-gray-50 font-sans text-gray-800">
+<body class="bg-gray-100 font-sans text-gray-800">
 
-    <!-- شاشة إدخال المفاتيح المؤقتة (إذا لم تكن مخزنة) -->
+    <!-- نافذة إعداد المفاتيح (تظهر مرة واحدة) -->
     <div id="config-modal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4">
-            <h2 class="text-xl font-bold text-blue-900 flex items-center gap-2">
-                <i class="fas fa-database text-blue-600"></i> إعداد اتصال Supabase
+            <h2 class="text-xl font-bold text-emerald-900 flex items-center gap-2">
+                <i class="fas fa-database text-emerald-600"></i> ربط سحابة Supabase
             </h2>
-            <p class="text-sm text-gray-600">الرجاء إدخال بيانات مشروعك لكي يبدأ التطبيق في حفظ واسترجاع القضايا سحابياً:</p>
+            <p class="text-sm text-gray-600">أدخل بيانات مشروعك لتفعيل الحفظ السحابي:</p>
             <div>
                 <label class="block text-xs font-semibold mb-1">Project URL</label>
-                <input type="text" id="supabase-url" value="https://mojagltjszwipxwolxpi.supabase.co" class="w-full border rounded-lg p-2.5 text-sm bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none">
+                <input type="text" id="supabase-url" value="https://mojagltjszwipxwolxpi.supabase.co" class="w-full border rounded-lg p-2.5 text-sm bg-gray-50 focus:ring-2 focus:ring-emerald-500 outline-none">
             </div>
             <div>
                 <label class="block text-xs font-semibold mb-1">Publishable Key (Anon)</label>
-                <input type="password" id="supabase-key" placeholder="أصصق المفتاح هنا..." class="w-full border rounded-lg p-2.5 text-sm bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none">
+                <input type="password" id="supabase-key" placeholder="الصق المفتاح هنا..." class="w-full border rounded-lg p-2.5 text-sm bg-gray-50 focus:ring-2 focus:ring-emerald-500 outline-none">
             </div>
-            <button onclick="saveConfig()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg transition">
+            <button onclick="saveConfig()" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-2.5 rounded-lg transition">
                 حفظ وبدء التطبيق
             </button>
         </div>
@@ -35,72 +36,211 @@
 
     <!-- التطبيق الرئيسي -->
     <div id="app" class="min-h-screen flex flex-col hidden">
-        <!-- الشريط العلوي -->
-        <header class="bg-blue-900 text-white shadow-md py-4 px-6 flex justify-between items-center">
+        
+        <!-- الشريط العلوي مع شعار العدالة الجزائرية والعنوان -->
+        <header class="bg-emerald-900 text-white shadow-lg py-4 px-6 flex flex-col sm:flex-row justify-between items-center gap-3 border-b-4 border-amber-500">
             <div class="flex items-center gap-3">
-                <i class="fas fa-balance-scale text-2xl text-amber-400"></i>
-                <h1 class="text-xl font-bold">محفظة الوسيط القضائي</h1>
+                <div class="w-12 h-12 bg-amber-500 rounded-full flex items-center justify-center text-emerald-950 text-2xl font-bold shadow-inner">
+                    <i class="fas fa-balance-scale"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-extrabold tracking-wide">محفظة الوسيط القضائي</h1>
+                    <p class="text-xs text-amber-300">منصة رقمية لتسوية النزاعات - الجزائر (LegalTech)</p>
+                </div>
             </div>
-            <span class="bg-blue-800 text-xs px-3 py-1 rounded-full text-amber-300 border border-amber-400/30">مؤسسة ناشئة - الجزائر</span>
+            <span class="bg-emerald-800 text-xs px-3 py-1.5 rounded-full text-amber-300 border border-amber-400/30 font-semibold">
+                <i class="fas fa-shield-alt ml-1"></i> نسخة المؤسسات الناشئة
+            </span>
         </header>
 
-        <!-- المحتوى -->
-        <main class="flex-1 max-w-5xl w-full mx-auto p-4 md:p-6 space-y-6">
-            <!-- قسم إضافة قضية -->
-            <section class="bg-white rounded-2xl shadow-sm border p-5">
-                <h2 class="text-lg font-bold text-blue-900 mb-4 flex items-center gap-2">
-                    <i class="fas fa-folder-plus text-blue-600"></i> تسجيل قضية جديدة
-                </h2>
-                <form id="case-form" onsubmit="addCase(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <input type="text" id="case-num" placeholder="رقم القضية (مثال: 2026/123)" required class="border rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">
-                    <input type="text" id="case-parties" placeholder="أطراف النزاع (مثال: أ. أحمد ضد ب. محمد)" required class="border rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">
-                    <select id="case-status" class="border rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="جارية">جارية</option>
-                        <option value="معلقة">معلقة</option>
-                        <option value="مفصولة / تم الصلح">مفصولة / تم الصلح</option>
-                    </select>
-                    <input type="text" id="case-notes" placeholder="ملاحظات أو مبالغ المالية (اختياري)" class="border rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">
-                    <button type="submit" class="md:col-span-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg transition flex items-center justify-center gap-2">
-                        <i class="fas fa-save"></i> حفظ القضية في السحابة
-                    </button>
-                </form>
-            </section>
+        <!-- أزرار التنقل الرئيسية -->
+        <nav class="bg-white shadow-sm border-b px-4 py-3">
+            <div class="max-w-6xl mx-auto flex flex-wrap gap-2 justify-center md:justify-start">
+                <button onclick="switchTab('cases')" id="btn-cases" class="tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-emerald-700 text-white shadow transition flex items-center gap-2">
+                    <i class="fas fa-folder-plus"></i> إضافة قضية
+                </button>
+                <button onclick="switchTab('solved')" id="btn-solved" class="tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-gray-100 text-gray-700 hover:bg-gray-200 transition flex items-center gap-2">
+                    <i class="fas fa-check-circle"></i> القضايا المحلولة
+                </button>
+                <button onclick="switchTab('sessions')" id="btn-sessions" class="tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-gray-100 text-gray-700 hover:bg-gray-200 transition flex items-center gap-2">
+                    <i class="fas fa-calendar-alt"></i> الجلسات والمواعيد
+                </button>
+                <button onclick="switchTab('notes')" id="btn-notes" class="tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-gray-100 text-gray-700 hover:bg-gray-200 transition flex items-center gap-2">
+                    <i class="fas fa-sticky-note"></i> ملاحظات الوسيط
+                </button>
+                <button onclick="switchTab('chat')" id="btn-chat" class="tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-gray-100 text-gray-700 hover:bg-gray-200 transition flex items-center gap-2">
+                    <i class="fas fa-comments"></i> محادثة القاضي والوسيط
+                </button>
+            </div>
+        </nav>
 
-            <!-- جدول عرض القضايا -->
-            <section class="bg-white rounded-2xl shadow-sm border p-5 overflow-hidden">
-                <h2 class="text-lg font-bold text-blue-900 mb-4 flex items-center gap-2">
-                    <i class="fas fa-list text-blue-600"></i> القضايا المسجلة سحابياً
-                </h2>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-right border-collapse text-sm">
-                        <thead>
-                            <tr class="bg-gray-100 text-gray-700 border-b">
-                                <th class="p-3">رقم القضية</th>
-                                <th class="p-3">الأطراف</th>
-                                <th class="p-3">الحالة</th>
-                                <th class="p-3">ملاحظات</th>
-                                <th class="p-3 text-center">إجراءات</th>
-                            </tr>
-                        </thead>
-                        <tbody id="cases-list">
-                            <!-- يتم تعبئتها ديناميكياً من Supabase -->
-                        </tbody>
-                    </table>
+        <!-- محتوى الأقسام -->
+        <main class="flex-1 max-w-6xl w-full mx-auto p-4 md:p-6">
+
+            <!-- 1. قسم إضافة قضية جديدة -->
+            <div id="tab-cases" class="tab-content space-y-6">
+                <div class="bg-white rounded-2xl shadow-sm border p-5">
+                    <h2 class="text-lg font-bold text-emerald-900 mb-4 flex items-center gap-2">
+                        <i class="fas fa-plus-circle text-emerald-600"></i> تسجيل قضية وساطة جديدة
+                    </h2>
+                    <form id="case-form" onsubmit="saveCase(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input type="hidden" id="case-id">
+                        <div>
+                            <label class="block text-xs font-semibold mb-1 text-gray-600">رقم القضية / الملف</label>
+                            <input type="text" id="case-num" placeholder="مثال: 2026/45" required class="w-full border rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold mb-1 text-gray-600">أطراف النزاع</label>
+                            <input type="text" id="case-parties" placeholder="مثال: شركة أ ضد السيد ب" required class="w-full border rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold mb-1 text-gray-600">حالة القضية</label>
+                            <select id="case-status" class="w-full border rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+                                <option value="جارية">جارية (قيد الوساطة)</option>
+                                <option value="معلقة">معلقة</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold mb-1 text-gray-600">ملاحظات أولية</label>
+                            <input type="text" id="case-notes" placeholder="موضوع النزاع باختصار" class="w-full border rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                        <div class="md:col-span-2 flex gap-2">
+                            <button type="submit" id="case-submit-btn" class="flex-1 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-2.5 rounded-lg transition flex items-center justify-center gap-2">
+                                <i class="fas fa-save"></i> حفظ القضية سحابياً
+                            </button>
+                            <button type="button" onclick="resetCaseForm()" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2.5 rounded-lg transition hidden" id="case-cancel-btn">إلغاء</button>
+                        </div>
+                    </form>
                 </div>
-            </section>
+
+                <div class="bg-white rounded-2xl shadow-sm border p-5">
+                    <h3 class="text-md font-bold text-emerald-900 mb-3"><i class="fas fa-list text-emerald-600"></i> القضايا الجارية المسجلة</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right border-collapse text-sm">
+                            <thead>
+                                <tr class="bg-gray-100 text-gray-700 border-b">
+                                    <th class="p-3">رقم القضية</th>
+                                    <th class="p-3">الأطراف</th>
+                                    <th class="p-3">الحالة</th>
+                                    <th class="p-3">ملاحظات</th>
+                                    <th class="p-3 text-center">إجراءات (تعديل / حذف)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cases-list"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. قسم القضايا المحلولة -->
+            <div id="tab-solved" class="tab-content hidden space-y-6">
+                <div class="bg-white rounded-2xl shadow-sm border p-5">
+                    <h2 class="text-lg font-bold text-emerald-900 mb-4 flex items-center gap-2">
+                        <i class="fas fa-check-double text-emerald-600"></i> سجل القضايا المحلولة (تم الصلح فيها)
+                    </h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right border-collapse text-sm">
+                            <thead>
+                                <tr class="bg-gray-100 text-gray-700 border-b">
+                                    <th class="p-3">رقم القضية</th>
+                                    <th class="p-3">الأطراف</th>
+                                    <th class="p-3">تفاصيل الصلح</th>
+                                    <th class="p-3 text-center">إجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="solved-list"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. قسم الجلسات والمواعيد -->
+            <div id="tab-sessions" class="tab-content hidden space-y-6">
+                <div class="bg-white rounded-2xl shadow-sm border p-5">
+                    <h2 class="text-lg font-bold text-emerald-900 mb-4 flex items-center gap-2">
+                        <i class="fas fa-calendar-check text-emerald-600"></i> جدول الجلسات والمواعيد
+                    </h2>
+                    <form id="session-form" onsubmit="saveSession(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                        <input type="text" id="session-case" placeholder="رقم القضية المرتبطة" required class="border rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+                        <input type="datetime-local" id="session-datetime" required class="border rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+                        <input type="text" id="session-place" placeholder="مكان الجلسة (مثال: مكتب الوسيط)" required class="border rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+                        <button type="submit" class="bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-2.5 rounded-lg transition flex items-center justify-center gap-2">
+                            <i class="fas fa-plus"></i> إضافة الموعد
+                        </button>
+                    </form>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right border-collapse text-sm">
+                            <thead>
+                                <tr class="bg-gray-100 text-gray-700 border-b">
+                                    <th class="p-3">رقم القضية</th>
+                                    <th class="p-3">تاريخ ووقت الجلسة</th>
+                                    <th class="p-3">المكان</th>
+                                    <th class="p-3 text-center">إجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sessions-list"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. قسم ملاحظات الوسيط -->
+            <div id="tab-notes" class="tab-content hidden space-y-6">
+                <div class="bg-white rounded-2xl shadow-sm border p-5">
+                    <h2 class="text-lg font-bold text-emerald-900 mb-4 flex items-center gap-2">
+                        <i class="fas fa-sticky-note text-emerald-600"></i> ملاحظات الوسيط وتدوينات الجلسات
+                    </h2>
+                    <form id="note-form" onsubmit="saveNote(event)" class="space-y-3 mb-6">
+                        <input type="text" id="note-case" placeholder="رقم القضية أو عنوان الملاحظة" required class="w-full border rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+                        <textarea id="note-content" rows="3" placeholder="اكتب تفاصيل الملاحظة..." required class="w-full border rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+                        <button type="submit" class="bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-2.5 px-6 rounded-lg transition">
+                            <i class="fas fa-save"></i> حفظ الملاحظة
+                        </button>
+                    </form>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="notes-grid"></div>
+                </div>
+            </div>
+
+            <!-- 5. قسم محادثة القاضي والوسيط القضائي -->
+            <div id="tab-chat" class="tab-content hidden space-y-6">
+                <div class="bg-white rounded-2xl shadow-sm border p-5 flex flex-col h-[600px]">
+                    <h2 class="text-lg font-bold text-emerald-900 mb-4 flex items-center gap-2 border-b pb-3">
+                        <i class="fas fa-comments text-emerald-600"></i> قناة المراسلة الداخلية (بين القاضي والوسيط القضائي)
+                    </h2>
+                    
+                    <!-- صندوق عرض الرسائل -->
+                    <div id="chat-messages" class="flex-1 overflow-y-auto space-y-3 p-3 bg-gray-50 rounded-xl border mb-4">
+                        <!-- تُعبأ ديناميكياً -->
+                    </div>
+
+                    <!-- نموذج إرسال رسالة -->
+                    <form id="chat-form" onsubmit="sendChatMessage(event)" class="flex gap-2">
+                        <select id="chat-sender" class="border rounded-lg p-2.5 text-sm bg-white outline-none focus:ring-2 focus:ring-emerald-500 font-semibold">
+                            <option value="الوسيط القضائي">الوسيط القضائي</option>
+                            <option value="القاضي المشرف">القاضي المشرف</option>
+                        </select>
+                        <input type="text" id="chat-input" placeholder="اكتب رسالة أو تقرير موجز بخصوص القضية..." required class="flex-1 border rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
+                        <button type="submit" class="bg-emerald-700 hover:bg-emerald-800 text-white font-semibold px-6 py-2.5 rounded-lg transition flex items-center gap-2">
+                            <i class="fas fa-paper-plane"></i> إرسال
+                        </button>
+                    </form>
+                </div>
+            </div>
+
         </main>
     </div>
 
-    <!-- كود الجافاسكريبت للربط مع Supabase -->
+    <!-- كود الجافاسكريبت والربط السحابي -->
     <script>
         let supabaseClient = null;
 
-        // التحقق من وجود مفاتيح مخزنة مسبقاً
         window.onload = function() {
-            const savedUrl = localStorage.getItem('sb_url');
-            const savedKey = localStorage.getItem('sb_key');
-            if (savedUrl && savedKey) {
-                initSupabase(savedUrl, savedKey);
+            const url = localStorage.getItem('sb_url');
+            const key = localStorage.getItem('sb_key');
+            if (url && key) {
+                initSupabase(url, key);
             }
         };
 
@@ -108,7 +248,7 @@
             const url = document.getElementById('supabase-url').value.trim();
             const key = document.getElementById('supabase-key').value.trim();
             if(!url || !key) {
-                alert('الرجاء إدخال الرابط والمفتاح بشكل صحيح!');
+                alert('الرجاء إدخال البيانات بشكل صحيح!');
                 return;
             }
             localStorage.setItem('sb_url', url);
@@ -121,77 +261,222 @@
                 supabaseClient = window.supabase.createClient(url, key);
                 document.getElementById('config-modal').classList.add('hidden');
                 document.getElementById('app').classList.remove('hidden');
-                loadCases();
+                loadAllData();
             } catch (e) {
-                alert('خطأ في الاتصال: تأكد من صحة المفاتيح.');
+                alert('خطأ في الاتصال بالسحابة.');
             }
         }
 
-        // جلب القضايا من قاعدة البيانات السحابية
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.classList.remove('bg-emerald-700', 'text-white');
+                el.classList.add('bg-gray-100', 'text-gray-700');
+            });
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+            const activeBtn = document.getElementById('btn-' + tabId);
+            activeBtn.classList.remove('bg-gray-100', 'text-gray-700');
+            activeBtn.classList.add('bg-emerald-700', 'text-white');
+        }
+
+        function loadAllData() {
+            loadCases();
+            loadSessions();
+            loadNotes();
+            loadChatMessages();
+        }
+
+        // --- إدارة القضايا ---
         async function loadCases() {
             const { data, error } = await supabaseClient.from('cases').select('*').order('id', { ascending: false });
             const tbody = document.getElementById('cases-list');
+            const solvedTbody = document.getElementById('solved-list');
             tbody.innerHTML = '';
-
-            if (error) {
-                console.error(error);
-                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-500">خطأ في جلب البيانات: ${error.message}</td></tr>`;
-                return;
-            }
-
-            if (!data || data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-gray-500">لا توجد قضايا مسجلة حتى الآن.</td></tr>`;
-                return;
-            }
+            solvedTbody.innerHTML = '';
+            if (error || !data) return;
 
             data.forEach(c => {
-                tbody.innerHTML += `
+                const row = `
                     <tr class="border-b hover:bg-gray-50">
-                        <td class="p-3 font-semibold text-blue-900">${c.num}</td>
+                        <td class="p-3 font-semibold text-emerald-900">${c.num}</td>
                         <td class="p-3">${c.parties}</td>
                         <td class="p-3">
-                            <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${c.status === 'جارية' ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800'}">
-                                ${c.status}
-                            </span>
+                            <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${c.status === 'جارية' ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800'}">${c.status}</span>
                         </td>
                         <td class="p-3 text-gray-600">${c.notes || '-'}</td>
+                        <td class="p-3 text-center space-x-2 space-x-reverse">
+                            <button onclick="editCase(${c.id}, '${c.num}', '${c.parties}', '${c.status}', '${c.notes || ''}')" class="text-blue-600 hover:text-blue-800" title="تعديل"><i class="fas fa-edit"></i></button>
+                            <button onclick="moveToSolved(${c.id})" class="text-green-600 hover:text-green-800" title="نقل للقضايا المحلولة"><i class="fas fa-check-circle"></i></button>
+                            <button onclick="deleteRecord('cases', ${c.id})" class="text-red-500 hover:text-red-700" title="حذف"><i class="fas fa-trash-alt"></i></button>
+                        </td>
+                    </tr>
+                `;
+                if(c.status === 'مفصولة / تم الصلح') {
+                    solvedTbody.innerHTML += `
+                        <tr class="border-b hover:bg-gray-50">
+                            <td class="p-3 font-semibold text-emerald-900">${c.num}</td>
+                            <td class="p-3">${c.parties}</td>
+                            <td class="p-3 text-green-700 font-medium">تم الصلح بنجاح</td>
+                            <td class="p-3 text-center">
+                                <button onclick="deleteRecord('cases', ${c.id})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash-alt"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    tbody.innerHTML += row;
+                }
+            });
+        }
+
+        async function saveCase(e) {
+            e.preventDefault();
+            const id = document.getElementById('case-id').value;
+            const num = document.getElementById('case-num').value;
+            const parties = document.getElementById('case-parties').value;
+            const status = document.getElementById('case-status').value;
+            const notes = document.getElementById('case-notes').value;
+
+            if(id) {
+                await supabaseClient.from('cases').update({ num, parties, status, notes }).eq('id', id);
+            } else {
+                await supabaseClient.from('cases').insert([{ num, parties, status, notes }]);
+            }
+            resetCaseForm();
+            loadCases();
+        }
+
+        function editCase(id, num, parties, status, notes) {
+            document.getElementById('case-id').value = id;
+            document.getElementById('case-num').value = num;
+            document.getElementById('case-parties').value = parties;
+            document.getElementById('case-status').value = status;
+            document.getElementById('case-notes').value = notes;
+            document.getElementById('case-submit-btn').innerText = "تحديث القضية";
+            document.getElementById('case-cancel-btn').classList.remove('hidden');
+        }
+
+        function resetCaseForm() {
+            document.getElementById('case-form').reset();
+            document.getElementById('case-id').value = '';
+            document.getElementById('case-submit-btn').innerText = "حفظ القضية سحابياً";
+            document.getElementById('case-cancel-btn').classList.add('hidden');
+        }
+
+        async function moveToSolved(id) {
+            await supabaseClient.from('cases').update({ status: 'مفصولة / تم الصلح' }).eq('id', id);
+            loadCases();
+        }
+
+        // --- إدارة الجلسات والمواعيد ---
+        async function loadSessions() {
+            const { data, error } = await supabaseClient.from('sessions').select('*').order('id', { ascending: false });
+            const tbody = document.getElementById('sessions-list');
+            tbody.innerHTML = '';
+            if (error || !data) return;
+
+            data.forEach(s => {
+                tbody.innerHTML += `
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="p-3 font-semibold text-emerald-900">${s.caseNum}</td>
+                        <td class="p-3">${s.datetime.replace('T', ' الوقت: ')}</td>
+                        <td class="p-3">${s.place}</td>
                         <td class="p-3 text-center">
-                            <button onclick="deleteCase(${c.id})" class="text-red-500 hover:text-red-700 transition px-2 py-1">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
+                            <button onclick="deleteRecord('sessions', ${s.id})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash-alt"></i></button>
                         </td>
                     </tr>
                 `;
             });
         }
 
-        // إضافة قضية جديدة إلى Supabase
-        async function addCase(e) {
+        async function saveSession(e) {
             e.preventDefault();
-            const num = document.getElementById('case-num').value;
-            const parties = document.getElementById('case-parties').value;
-            const status = document.getElementById('case-status').value;
-            const notes = document.getElementById('case-notes').value;
+            const caseNum = document.getElementById('session-case').value;
+            const datetime = document.getElementById('session-datetime').value;
+            const place = document.getElementById('session-place').value;
 
-            const { error } = await supabaseClient.from('cases').insert([{ num, parties, status, notes }]);
-            
-            if (error) {
-                alert('فشل الحفظ: ' + error.message);
-            } else {
-                document.getElementById('case-form').reset();
-                loadCases();
-            }
+            await supabaseClient.from('sessions').insert([{ caseNum, datetime, place }]);
+            document.getElementById('session-form').reset();
+            loadSessions();
         }
 
-        // حذف قضية من السحابة
-        async function deleteCase(id) {
-            if(confirm('هل أنت متأكد من حذف هذه القضية نهائياً؟')) {
-                const { error } = await supabaseClient.from('cases').delete().eq('id', id);
-                if(error) {
-                    alert('خطأ في الحذف: ' + error.message);
-                } else {
-                    loadCases();
-                }
+        // --- ملاحظات الوسيط ---
+        async function loadNotes() {
+            const { data, error } = await supabaseClient.from('notes').select('*').order('id', { ascending: false }); // أو جدول مخصص
+            const grid = document.getElementById('notes-grid');
+            grid.innerHTML = '';
+            if (error || !data) return;
+
+            data.forEach(n => {
+                grid.innerHTML += `
+                    <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 shadow-sm relative space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="font-bold text-emerald-900 text-sm"><i class="fas fa-bookmark text-amber-600"></i> ${n.caseNum}</span>
+                            <button onclick="deleteRecord('notes', ${n.id})" class="text-red-500 hover:text-red-700 text-xs"><i class="fas fa-trash-alt"></i> حذف</button>
+                        </div>
+                        <p class="text-gray-700 text-sm whitespace-pre-wrap">${n.content}</p>
+                    </div>
+                `;
+            });
+        }
+
+        async function saveNote(e) {
+            e.preventDefault();
+            const caseNum = document.getElementById('note-case').value;
+            const content = document.getElementById('note-content').value;
+
+            // للتأكد من حفظها، سنستخدم جدول messages أو جدول مخصص
+            await supabaseClient.from('messages').insert([{ caseNum: "ملاحظة: " + caseNum, content, createdAt: new Date().toLocaleDateString() }]);
+            document.getElementById('note-form').reset();
+            loadNotes();
+        }
+
+        // --- محادثة القاضي والوسيط ---
+        async function loadChatMessages() {
+            const { data, error } = await supabaseClient.from('messages').select('*').order('id', { ascending: true });
+            const chatBox = document.getElementById('chat-messages');
+            chatBox.innerHTML = '';
+            if (error || !data) return;
+
+            data.forEach(m => {
+                // استثناء الملاحظات إذا كانت مخزنة في نفس الجدول
+                const isJudge = m.caseNum && m.caseNum.includes('القاضي');
+                chatBox.innerHTML += `
+                    <div class="p-3 rounded-xl border max-w-lg ${isJudge ? 'bg-blue-50 border-blue-200 mr-auto text-left' : 'bg-white border-gray-200 ml-auto'}">
+                        <div class="flex justify-between text-xs text-gray-500 mb-1">
+                            <span class="font-bold text-emerald-800">${m.caseNum || 'محادثة'}</span>
+                            <span>${m.createdAt || ''}</span>
+                        </div>
+                        <p class="text-sm text-gray-800">${m.content}</p>
+                        <div class="text-left mt-1">
+                            <button onclick="deleteRecord('messages', ${m.id})" class="text-red-400 hover:text-red-600 text-xs"><i class="fas fa-trash"></i> حذف</button>
+                        </div>
+                    </div>
+                `;
+            });
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        async function sendChatMessage(e) {
+            e.preventDefault();
+            const sender = document.getElementById('chat-sender').value;
+            const text = document.getElementById('chat-input').value;
+            const timeNow = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            await supabaseClient.from('messages').insert([{ 
+                caseNum: `مرسل من: ${sender}`, 
+                content: text, 
+                createdAt: timeNow 
+            }]);
+
+            document.getElementById('chat-input').value = '';
+            loadChatMessages();
+        }
+
+        // --- حذف عام ---
+        async function deleteRecord(table, id) {
+            if(confirm('هل أنت متأكد من الحذف؟')) {
+                await supabaseClient.from(table).delete().eq('id', id);
+                loadAllData();
             }
         }
     </script>
