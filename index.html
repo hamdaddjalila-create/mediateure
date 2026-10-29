@@ -244,7 +244,7 @@
         </main>
     </div>
 
-    <!-- كود الجافاسكريبت والربط السحابي الشامل الموحد -->
+    <!-- كود الجافاسكريبت والربط السحابي الشامل -->
     <script>
         let supabaseClient = null;
         let unreadCount = 0;
@@ -390,7 +390,7 @@
             loadCases();
         }
 
-        // --- 2. الجلسات سحابياً ---
+        // --- 2. الجلسات سحابياً (دعم مرن لأسماء الأعمدة) ---
         async function loadSessions() {
             if(!supabaseClient) return;
             const { data, error } = await supabaseClient.from('sessions').select('*').order('id', { ascending: false });
@@ -399,13 +399,16 @@
             if (error || !data) return;
 
             data.forEach(s => {
+                const cNum = s.case_num || s.caseNum || s.num || '-';
+                const sDate = s.datetime || s.date || '-';
+                const sPlace = s.place || '-';
                 tbody.innerHTML += `
                     <tr class="border-b hover:bg-gray-50">
-                        <td class="p-3 font-semibold text-emerald-900">${s.case_num}</td>
-                        <td class="p-3">${s.datetime ? s.datetime.replace('T', ' الوقت: ') : '-'}</td>
-                        <td class="p-3">${s.place}</td>
+                        <td class="p-3 font-semibold text-emerald-900">${cNum}</td>
+                        <td class="p-3">${sDate.toString().replace('T', ' الوقت: ')}</td>
+                        <td class="p-3">${sPlace}</td>
                         <td class="p-3 text-center space-x-2 space-x-reverse">
-                            <button onclick="editSession(${s.id}, '${s.case_num}', '${s.datetime}', '${s.place}')" class="text-blue-600 hover:text-blue-800" title="تعديل"><i class="fas fa-edit"></i></button>
+                            <button onclick="editSession(${s.id}, '${cNum}', '${sDate}', '${sPlace}')" class="text-blue-600 hover:text-blue-800" title="تعديل"><i class="fas fa-edit"></i></button>
                             <button onclick="deleteCloudRecord('sessions', ${s.id})" class="text-red-500 hover:text-red-700" title="حذف"><i class="fas fa-trash-alt"></i></button>
                         </td>
                     </tr>
@@ -445,7 +448,7 @@
             document.getElementById('session-cancel-btn').classList.add('hidden');
         }
 
-        // --- 3. الملاحظات سحابياً ---
+        // --- 3. الملاحظات سحابياً (دعم مرن لأسماء الأعمدة) ---
         async function loadNotes() {
             if(!supabaseClient) return;
             const { data, error } = await supabaseClient.from('notes').select('*').order('id', { ascending: false });
@@ -454,16 +457,18 @@
             if (error || !data) return;
 
             data.forEach(n => {
+                const cNum = n.case_num || n.caseNum || 'ملاحظة';
+                const cContent = n.content || n.text || '';
                 grid.innerHTML += `
                     <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 shadow-sm relative space-y-2">
                         <div class="flex justify-between items-center">
-                            <span class="font-bold text-emerald-900 text-sm"><i class="fas fa-bookmark text-amber-600"></i> ${n.case_num || 'ملاحظة'}</span>
+                            <span class="font-bold text-emerald-900 text-sm"><i class="fas fa-bookmark text-amber-600"></i> ${cNum}</span>
                             <div class="space-x-2 space-x-reverse">
-                                <button onclick="editNote(${n.id}, '${n.case_num || ''}', \`${n.content}\`)" class="text-blue-600 hover:text-blue-800 text-xs" title="تعديل"><i class="fas fa-edit"></i></button>
+                                <button onclick="editNote(${n.id}, '${cNum}', \`${cContent}\`)" class="text-blue-600 hover:text-blue-800 text-xs" title="تعديل"><i class="fas fa-edit"></i></button>
                                 <button onclick="deleteCloudRecord('notes', ${n.id})" class="text-red-500 hover:text-red-700 text-xs" title="حذف"><i class="fas fa-trash-alt"></i></button>
                             </div>
                         </div>
-                        <p class="text-gray-700 text-sm whitespace-pre-wrap">${n.content}</p>
+                        <p class="text-gray-700 text-sm whitespace-pre-wrap">${cContent}</p>
                     </div>
                 `;
             });
@@ -499,26 +504,34 @@
             document.getElementById('note-cancel-btn').classList.add('hidden');
         }
 
-        // --- 4. المحادثات سحابياً ---
+        // --- 4. المحادثات سحابياً (تدعم جدول messages أو chat تلقائياً) ---
         async function loadChatMessages() {
             if(!supabaseClient) return;
-            const { data, error } = await supabaseClient.from('chat').select('*').order('id', { ascending: true });
+            // جرب جلب البيانات من جدول chat أو messages بناءً على ما هو متوفر لديك
+            let res = await supabaseClient.from('chat').select('*').order('id', { ascending: true });
+            if(res.error || !res.data) {
+                res = await supabaseClient.from('messages').select('*').order('id', { ascending: true });
+            }
+            const data = res.data;
             const chatBox = document.getElementById('chat-messages');
             chatBox.innerHTML = '';
-            if (error || !data) return;
+            if (!data) return;
 
             data.forEach(m => {
-                const isJudge = m.sender && m.sender.includes('القاضي');
+                const sender = m.sender || m.user || 'الوسيط القضائي';
+                const text = m.text || m.message || '';
+                const time = m.time || '';
+                const isJudge = sender.includes('القاضي');
                 chatBox.innerHTML += `
                     <div class="p-3 rounded-xl border max-w-lg ${isJudge ? 'bg-blue-50 border-blue-200 mr-auto text-left' : 'bg-white border-gray-200 ml-auto'}">
                         <div class="flex justify-between text-xs text-gray-500 mb-1">
-                            <span class="font-bold text-emerald-800">مرسل من: ${m.sender}</span>
-                            <span>${m.time}</span>
+                            <span class="font-bold text-emerald-800">مرسل من: ${sender}</span>
+                            <span>${time}</span>
                         </div>
-                        <p class="text-sm text-gray-800">${m.text}</p>
+                        <p class="text-sm text-gray-800">${text}</p>
                         <div class="flex justify-between items-center mt-2 pt-1 border-t text-xs">
                             <div class="space-x-2 space-x-reverse">
-                                <button onclick="editChatMessage(${m.id}, '${m.sender}', \`${m.text}\`)" class="text-blue-600 hover:text-blue-800 font-semibold"><i class="fas fa-edit"></i> تعديل</button>
+                                <button onclick="editChatMessage(${m.id}, '${sender}', \`${text}\`)" class="text-blue-600 hover:text-blue-800 font-semibold"><i class="fas fa-edit"></i> تعديل</button>
                                 <button onclick="deleteCloudRecord('chat', ${m.id})" class="text-red-500 hover:text-red-700 font-semibold"><i class="fas fa-trash"></i> حذف</button>
                             </div>
                         </div>
@@ -535,10 +548,17 @@
             const text = document.getElementById('chat-input').value.trim();
             const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
+            let tableName = 'chat';
+            // التحقق من الجدول المستخدم
+            let testCheck = await supabaseClient.from('chat').select('id').limit(1);
+            if(testCheck.error) {
+                tableName = 'messages';
+            }
+
             if(editId) {
-                await supabaseClient.from('chat').update({ sender, text, time }).eq('id', editId);
+                await supabaseClient.from(tableName).update({ sender, text, time }).eq('id', editId);
             } else {
-                await supabaseClient.from('chat').insert([{ sender, text, time }]);
+                await supabaseClient.from(tableName).insert([{ sender, text, time }]);
                 triggerNotification();
             }
 
@@ -571,13 +591,19 @@
             }
         }
 
-        // --- حذف عام ---
+        // --- حذف عام مع دعم الجدولين للمحادثات ---
         async function deleteCloudRecord(table, id) {
             if(confirm('هل أنت متأكد من الحذف سحابياً؟')) {
-                await supabaseClient.from(table).delete().eq('id', id);
+                let targetTable = table;
+                if(table === 'chat') {
+                    let test = await supabaseClient.from('chat').select('id').limit(1);
+                    if(test.error) targetTable = 'messages';
+                }
+                await supabaseClient.from(targetTable).delete().eq('id', id);
                 loadAllData();
             }
         }
     </script>
 </body>
 </html>
+
