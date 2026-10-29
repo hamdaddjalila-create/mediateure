@@ -13,13 +13,13 @@
 </head>
 <body class="bg-gray-100 font-sans text-gray-800">
 
-    <!-- نافذة إعداد المفاتيح السحابية (تظهر أول مرة لتشغيل الربط بين الهاتف والحاسوب) -->
+    <!-- نافذة إعداد المفاتيح السحابية -->
     <div id="config-modal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 hidden">
         <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4">
             <h2 class="text-xl font-bold text-emerald-900 flex items-center gap-2">
                 <i class="fas fa-database text-emerald-600"></i> ربط التطبيق سحابياً
             </h2>
-            <p class="text-sm text-gray-600">أدخل بيانات مشروعك في Supabase لكي تتزامن البيانات بين هاتفك وحاسوبك:</p>
+            <p class="text-sm text-gray-600">أدخل بيانات مشروعك في Supabase للمزامنة بين الهاتف والحاسوب:</p>
             <div>
                 <label class="block text-xs font-semibold mb-1">Project URL</label>
                 <input type="text" id="supabase-url" value="https://mojagltjszwipxwolxpi.supabase.co" class="w-full border rounded-lg p-2.5 text-sm bg-gray-50 focus:ring-2 focus:ring-emerald-500 outline-none">
@@ -37,7 +37,7 @@
     <!-- التطبيق الرئيسي -->
     <div id="app" class="min-h-screen flex flex-col">
         
-        <!-- الشريط العلوي مع شعار العدالة الجزائرية والعنوان -->
+        <!-- الشريط العلوي -->
         <header class="bg-emerald-900 text-white shadow-lg py-4 px-6 flex flex-col sm:flex-row justify-between items-center gap-3 border-b-4 border-amber-500">
             <div class="flex items-center gap-3">
                 <div class="w-12 h-12 bg-amber-500 rounded-full flex items-center justify-center text-emerald-950 text-2xl font-bold shadow-inner">
@@ -58,7 +58,7 @@
             </div>
         </header>
 
-        <!-- أزرار التنقل الرئيسية -->
+        <!-- أزرار التنقل -->
         <nav class="bg-white shadow-sm border-b px-4 py-3">
             <div class="max-w-6xl mx-auto flex flex-wrap gap-2 justify-center md:justify-start">
                 <button onclick="switchTab('cases')" id="btn-cases" class="tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-emerald-700 text-white shadow transition flex items-center gap-2">
@@ -233,7 +233,7 @@
         </main>
     </div>
 
-    <!-- كود الجافاسكريبت للربط السحابي ومزامنة البيانات -->
+    <!-- كود الجافاسكريبت للربط السحابي -->
     <script>
         let supabaseClient = null;
 
@@ -292,7 +292,7 @@
             loadChatMessages();
         }
 
-        // --- إدارة القضايا (جدول cases) ---
+        // --- إدارة القضايا ---
         async function loadCases() {
             const { data, error } = await supabaseClient.from('cases').select('*').order('id', { ascending: false });
             const tbody = document.getElementById('cases-list');
@@ -372,22 +372,21 @@
             loadCases();
         }
 
-        // --- إدارة الجلسات والمواعيد (جدول messages) ---
+        // --- إدارة الجلسات والمواعيد (جدول sessions الجديد) ---
         async function loadSessions() {
-            const { data, error } = await supabaseClient.from('messages').select('*').order('id', { ascending: false });
+            const { data, error } = await supabaseClient.from('sessions').select('*').order('id', { ascending: false });
             const tbody = document.getElementById('sessions-list');
             tbody.innerHTML = '';
             if (error || !data) return;
 
-            const sessions = data.filter(m => m.caseNum && m.caseNum.startsWith('جلسة:'));
-            sessions.forEach(s => {
+            data.forEach(s => {
                 tbody.innerHTML += `
                     <tr class="border-b hover:bg-gray-50">
-                        <td class="p-3 font-semibold text-emerald-900">${s.caseNum.replace('جلسة: ', '')}</td>
-                        <td class="p-3">${s.createdAt || '-'}</td>
-                        <td class="p-3">${s.content || '-'}</td>
+                        <td class="p-3 font-semibold text-emerald-900">${s.case_num || '-'}</td>
+                        <td class="p-3">${s.datetime ? s.datetime.replace('T', ' الوقت: ') : '-'}</td>
+                        <td class="p-3">${s.place || '-'}</td>
                         <td class="p-3 text-center">
-                            <button onclick="deleteRecord('messages', ${s.id})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash-alt"></i></button>
+                            <button onclick="deleteRecord('sessions', ${s.id})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash-alt"></i></button>
                         </td>
                     </tr>
                 `;
@@ -396,15 +395,11 @@
 
         async function saveSession(e) {
             e.preventDefault();
-            const caseNum = document.getElementById('session-case').value.trim();
-            const datetime = document.getElementById('session-datetime').value.replace('T', ' الوقت: ');
+            const case_num = document.getElementById('session-case').value.trim();
+            const datetime = document.getElementById('session-datetime').value;
             const place = document.getElementById('session-place').value.trim();
 
-            const { error } = await supabaseClient.from('messages').insert([{ 
-                caseNum: "جلسة: " + caseNum, 
-                content: place, 
-                createdAt: datetime 
-            }]);
+            const { error } = await supabaseClient.from('sessions').insert([{ case_num, datetime, place }]);
             
             if (error) {
                 alert('خطأ في حفظ الموعد سحابياً: ' + error.message);
@@ -414,7 +409,7 @@
             }
         }
 
-        // --- ملاحظات الوسيط (جدول notes) ---
+        // --- ملاحظات الوسيط ---
         async function loadNotes() {
             const { data, error } = await supabaseClient.from('notes').select('*').order('id', { ascending: false });
             const grid = document.getElementById('notes-grid');
@@ -425,7 +420,7 @@
                 grid.innerHTML += `
                     <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 shadow-sm relative space-y-2">
                         <div class="flex justify-between items-center">
-                            <span class="font-bold text-emerald-900 text-sm"><i class="fas fa-bookmark text-amber-600"></i> ${n.caseNum || 'ملاحظة'}</span>
+                            <span class="font-bold text-emerald-900 text-sm"><i class="fas fa-bookmark text-amber-600"></i> ${n.caseNum || n.case_num || 'ملاحظة'}</span>
                             <button onclick="deleteRecord('notes', ${n.id})" class="text-red-500 hover:text-red-700 text-xs"><i class="fas fa-trash-alt"></i> حذف</button>
                         </div>
                         <p class="text-gray-700 text-sm whitespace-pre-wrap">${n.content}</p>
@@ -447,23 +442,23 @@
             loadNotes();
         }
 
-        // --- محادثة القاضي والوسيط (جدول messages) ---
+        // --- محادثة القاضي والوسيط ---
         async function loadChatMessages() {
             const { data, error } = await supabaseClient.from('messages').select('*').order('id', { ascending: true });
             const chatBox = document.getElementById('chat-messages');
             chatBox.innerHTML = '';
             if (error || !data) return;
 
-            const chatMsgs = data.filter(m => m.caseNum && !m.caseNum.startsWith('جلسة:'));
-            chatMsgs.forEach(m => {
-                const isJudge = m.caseNum && m.caseNum.includes('القاضي');
+            data.forEach(m => {
+                const senderName = m.caseNum || m.sender || 'محادثة';
+                const isJudge = senderName.includes('القاضي');
                 chatBox.innerHTML += `
                     <div class="p-3 rounded-xl border max-w-lg ${isJudge ? 'bg-blue-50 border-blue-200 mr-auto text-left' : 'bg-white border-gray-200 ml-auto'}">
                         <div class="flex justify-between text-xs text-gray-500 mb-1">
-                            <span class="font-bold text-emerald-800">${m.caseNum || 'محادثة'}</span>
-                            <span>${m.createdAt || ''}</span>
+                            <span class="font-bold text-emerald-800">${senderName}</span>
+                            <span>${m.createdAt || m.time || ''}</span>
                         </div>
-                        <p class="text-sm text-gray-800">${m.content}</p>
+                        <p class="text-sm text-gray-800">${m.content || m.text}</p>
                         <div class="text-left mt-1">
                             <button onclick="deleteRecord('messages', ${m.id})" class="text-red-400 hover:text-red-600 text-xs"><i class="fas fa-trash"></i> حذف</button>
                         </div>
