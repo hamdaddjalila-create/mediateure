@@ -49,7 +49,7 @@
                 </div>
             </div>
             <span class="bg-emerald-800 text-xs px-3 py-1.5 rounded-full text-amber-300 border border-amber-400/30 font-semibold">
-                <i class="fas fa-shield-alt ml-1"></i> نسخة المؤسسات الناشئة
+                <i class="fas fa-shield-alt ml-1"></i> مؤسسة ناشئة - الجزائر
             </span>
         </header>
 
@@ -57,7 +57,7 @@
         <nav class="bg-white shadow-sm border-b px-4 py-3">
             <div class="max-w-6xl mx-auto flex flex-wrap gap-2 justify-center md:justify-start">
                 <button onclick="switchTab('cases')" id="btn-cases" class="tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-emerald-700 text-white shadow transition flex items-center gap-2">
-                    <i class="fas fa-folder-plus"></i> إضافة قضية
+                    <i class="fas fa-folder-plus"></i> إضافة قضية جديدة
                 </button>
                 <button onclick="switchTab('solved')" id="btn-solved" class="tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-gray-100 text-gray-700 hover:bg-gray-200 transition flex items-center gap-2">
                     <i class="fas fa-check-circle"></i> القضايا المحلولة
@@ -210,12 +210,8 @@
                         <i class="fas fa-comments text-emerald-600"></i> قناة المراسلة الداخلية (بين القاضي والوسيط القضائي)
                     </h2>
                     
-                    <!-- صندوق عرض الرسائل -->
-                    <div id="chat-messages" class="flex-1 overflow-y-auto space-y-3 p-3 bg-gray-50 rounded-xl border mb-4">
-                        <!-- تُعبأ ديناميكياً -->
-                    </div>
+                    <div id="chat-messages" class="flex-1 overflow-y-auto space-y-3 p-3 bg-gray-50 rounded-xl border mb-4"></div>
 
-                    <!-- نموذج إرسال رسالة -->
                     <form id="chat-form" onsubmit="sendChatMessage(event)" class="flex gap-2">
                         <select id="chat-sender" class="border rounded-lg p-2.5 text-sm bg-white outline-none focus:ring-2 focus:ring-emerald-500 font-semibold">
                             <option value="الوسيط القضائي">الوسيط القضائي</option>
@@ -401,7 +397,7 @@
 
         // --- ملاحظات الوسيط ---
         async function loadNotes() {
-            const { data, error } = await supabaseClient.from('notes').select('*').order('id', { ascending: false }); // أو جدول مخصص
+            const { data, error } = await supabaseClient.from('notes').select('*').order('id', { ascending: false });
             const grid = document.getElementById('notes-grid');
             grid.innerHTML = '';
             if (error || !data) return;
@@ -424,7 +420,6 @@
             const caseNum = document.getElementById('note-case').value;
             const content = document.getElementById('note-content').value;
 
-            // للتأكد من حفظها، سنستخدم جدول messages أو جدول مخصص
             await supabaseClient.from('messages').insert([{ caseNum: "ملاحظة: " + caseNum, content, createdAt: new Date().toLocaleDateString() }]);
             document.getElementById('note-form').reset();
             loadNotes();
@@ -438,7 +433,6 @@
             if (error || !data) return;
 
             data.forEach(m => {
-                // استثناء الملاحظات إذا كانت مخزنة في نفس الجدول
                 const isJudge = m.caseNum && m.caseNum.includes('القاضي');
                 chatBox.innerHTML += `
                     <div class="p-3 rounded-xl border max-w-lg ${isJudge ? 'bg-blue-50 border-blue-200 mr-auto text-left' : 'bg-white border-gray-200 ml-auto'}">
