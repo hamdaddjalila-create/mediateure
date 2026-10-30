@@ -195,7 +195,7 @@
                 </div>
             </div>
 
-            <!-- 4. قسم ملاحظات الوسيط (متوافق مع جدول messages الموجود لديك) -->
+            <!-- 4. قسم ملاحظات الوسيط (متصل سحابياً بجدول notes) -->
             <div id="tab-notes" class="tab-content hidden space-y-6">
                 <div class="bg-white rounded-2xl shadow-sm border p-5">
                     <h2 class="text-lg font-bold text-emerald-900 mb-4 flex items-center gap-2">
@@ -217,7 +217,7 @@
                 </div>
             </div>
 
-            <!-- 5. قسم محادثة القاضي والوسيط القضائي -->
+            <!-- 5. قسم محادثة القاضي والوسيط (متصل سحابياً بجدول messages) -->
             <div id="tab-chat" class="tab-content hidden space-y-6">
                 <div class="bg-white rounded-2xl shadow-sm border p-5 flex flex-col h-[600px]">
                     <h2 class="text-lg font-bold text-emerald-900 mb-4 flex items-center gap-2 border-b pb-3">
@@ -244,7 +244,7 @@
         </main>
     </div>
 
-    <!-- كود الجافاسكريبت المحدث والمتوافق 100% مع أعمدة جدول messages الحقيقية -->
+    <!-- كود الجافاسكريبت المربوط بالكامل بسحابة Supabase -->
     <script>
         let supabaseClient = null;
         let unreadCount = 0;
@@ -280,7 +280,7 @@
                 supabaseClient = window.supabase.createClient(url, key);
                 document.getElementById('config-modal').classList.add('hidden');
                 loadAllData();
-                setInterval(loadAllData, 3000); // مزامنة تلقائية كل 3 ثوانٍ بين الأجهزة
+                setInterval(loadAllData, 3000); // مزامنة تلقائية لكل الأقسام كل 3 ثوانٍ بين الأجهزة
             } catch (e) {
                 alert('خطأ في الاتصال بالسحابة.');
             }
@@ -446,27 +446,23 @@
             document.getElementById('session-cancel-btn').classList.add('hidden');
         }
 
-        // --- 3. ملاحظات الوسيط (مستغلة لجدول messages بأعمدته الفعلية casenum, datetime, place, party) ---
+        // --- 3. ملاحظات الوسيط سحابياً (ترتبط بجدول notes الذي أنشأته) ---
         async function loadNotes() {
-            const { data, error } = await supabaseClient.from('messages').select('*').order('id', { ascending: false });
+            const { data, error } = await supabaseClient.from('notes').select('*').order('id', { ascending: false });
             const grid = document.getElementById('notes-grid');
             if (error || !data) return;
             
             grid.innerHTML = '';
-            // نصفي الملاحظات (التي يكون فيها حقل party مساوياً لـ "NOTE")
-            const notesData = data.filter(m => m.party === 'NOTE');
-
-            notesData.forEach(n => {
+            data.forEach(n => {
                 grid.innerHTML += `
                     <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 shadow-sm relative space-y-2">
                         <div class="flex justify-between items-center">
                             <span class="font-bold text-emerald-900 text-sm"><i class="fas fa-bookmark text-amber-600"></i> القضية: ${n.casenum || ''}</span>
                             <div class="space-x-2 space-x-reverse">
-                                <button onclick="deleteCloudRecord('messages', ${n.id})" class="text-red-500 hover:text-red-700 text-xs" title="حذف"><i class="fas fa-trash-alt"></i></button>
+                                <button onclick="deleteCloudRecord('notes', ${n.id})" class="text-red-500 hover:text-red-700 text-xs" title="حذف"><i class="fas fa-trash-alt"></i></button>
                             </div>
                         </div>
-                        <p class="text-gray-700 text-sm whitespace-pre-wrap">${n.place || ''}</p>
-                        <span class="text-[10px] text-gray-400 block">${n.datetime || ''}</span>
+                        <p class="text-gray-700 text-sm whitespace-pre-wrap">${n.content || ''}</p>
                     </div>
                 `;
             });
@@ -475,11 +471,9 @@
         async function saveNote(e) {
             e.preventDefault();
             const casenum = document.getElementById('note-case').value.trim();
-            const place = document.getElementById('note-content').value.trim();
-            const datetime = new Date().toLocaleString();
-            const party = 'NOTE'; // علامة تميز الملاحظة عن الرسالة العادية
+            const content = document.getElementById('note-content').value.trim();
 
-            await supabaseClient.from('messages').insert([{ casenum, place, datetime, party }]);
+            await supabaseClient.from('notes').insert([{ casenum, content }]);
 
             resetNoteForm();
             loadNotes();
@@ -491,20 +485,17 @@
             document.getElementById('note-cancel-btn').classList.add('hidden');
         }
 
-        // --- 4. محادثة القاضي والوسيط (تستغل جدول messages بأعمدته الفعلية) ---
+        // --- 4. محادثة القاضي والوسيط سحابياً (ترتبط بجدول messages) ---
         async function loadChatMessages() {
             const { data, error } = await supabaseClient.from('messages').select('*').order('id', { ascending: true });
             const chatBox = document.getElementById('chat-messages');
             if (error || !data) return;
             
             chatBox.innerHTML = '';
-            // نصفي المحادثات (التي ليس فيها party مساوياً لـ "NOTE")
-            const chatData = data.filter(m => m.party !== 'NOTE');
-
-            chatData.forEach(m => {
-                const senderName = m.datetime || 'الوسيط القضائي';
-                const msgText = m.place || '';
-                const msgTime = m.party || '';
+            data.forEach(m => {
+                const senderName = m.sender || 'الوسيط القضائي';
+                const msgText = m.text || '';
+                const msgTime = m.time || '';
                 const isJudge = senderName.includes('القاضي');
                 
                 chatBox.innerHTML += `
@@ -527,12 +518,11 @@
 
         async function sendChatMessage(e) {
             e.preventDefault();
-            const datetime = document.getElementById('chat-sender').value; // سنستخدم حقل datetime لتخزين المرسل
-            const place = document.getElementById('chat-input').value.trim(); // حقل place لتخزين نص الرسالة
-            const party = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); // حقل party لتخزين الوقت
-            const casenum = 'CHAT'; // علامة تميز الرسالة عن الملاحظة
+            const sender = document.getElementById('chat-sender').value;
+            const text = document.getElementById('chat-input').value.trim();
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-            await supabaseClient.from('messages').insert([{ casenum, place, datetime, party }]);
+            await supabaseClient.from('messages').insert([{ sender, text, time }]);
             triggerNotification();
 
             resetChatForm();
@@ -565,3 +555,4 @@
     </script>
 </body>
 </html>
+
