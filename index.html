@@ -169,7 +169,7 @@
                 </div>
             </div>
 
-            <!-- 2. قسم الجلسات والمواعيد (سحابي بالكامل) -->
+            <!-- 2. قسم الجلسات والمواعيد (سحابي بالكامل 100%) -->
             <div id="tab-sessions" class="tab-content hidden space-y-6">
                 <div class="bg-white rounded-2xl shadow-sm border p-5">
                     <h2 class="text-lg font-bold text-emerald-900 mb-4 flex items-center gap-2">
@@ -526,7 +526,7 @@
             loadCases();
         }
 
-        // --- الجلسات (مزامنة سحابية تامة) ---
+        // --- الجلسات ومزامنتها سحابياً ---
         async function loadSessions() {
             if(!supabaseClient) return;
             const { data, error } = await supabaseClient.from('sessions').select('*').order('id', { ascending: false });
@@ -562,9 +562,11 @@
             const notification_status = document.getElementById('session-notification-status').value;
 
             if(id) {
-                await supabaseClient.from('sessions').update({ casenum, datetime, place, attendance_type, parties_names, notification_status }).eq('id', id);
+                const { error } = await supabaseClient.from('sessions').update({ casenum, datetime, place, attendance_type, parties_names, notification_status }).eq('id', id);
+                if(error) alert('خطأ في التحديث السحابي: ' + error.message);
             } else {
-                await supabaseClient.from('sessions').insert([{ casenum, datetime, place, attendance_type, parties_names, notification_status }]);
+                const { error } = await supabaseClient.from('sessions').insert([{ casenum, datetime, place, attendance_type, parties_names, notification_status }]);
+                if(error) alert('خطأ في الحفظ السحابي: ' + error.message);
             }
             resetSessionForm();
             loadSessions();
@@ -660,7 +662,7 @@
             });
         }
 
-        // حل مشكلة الورقة البيضاء في تحميل الـ PDF نهائياً
+        // تحميل الـ PDF بدون ورقة بيضاء
         function downloadReportPDF(type, casenum, party1, party2, details, saved_at) {
             const isSolh = type === 'محضر صلح نهائي';
             const titleColor = isSolh ? '#064e3b' : '#7f1d1d';
@@ -724,7 +726,7 @@
             });
         }
 
-        // ربط أحداث التحديث الفوري للمعاينة
+        // ربط أحداث التحديث الفوري
         ['solh-case-num', 'solh-party1', 'solh-party2', 'solh-details'].forEach(id => {
             document.getElementById(id).addEventListener('input', updatePreviews);
         });
