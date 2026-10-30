@@ -17,7 +17,7 @@
     <div id="config-modal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 hidden">
         <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4">
             <h2 class="text-xl font-bold text-emerald-900 flex items-center gap-2">
-                <i class="fas fa-database text-emerald-600"></i> إعداد الربط السحابي الشامل
+                <i class="fas fa-database text-emerald-600"></i> إعداد الربط السحابي
             </h2>
             <p class="text-sm text-gray-600">أدخل بيانات مشروعك في Supabase لكي يتزامن الحاسوب والهاتف فوراً:</p>
             <div>
@@ -69,13 +69,6 @@
                 </button>
                 <button onclick="switchTab('sessions')" id="btn-sessions" class="tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-gray-100 text-gray-700 hover:bg-gray-200 transition flex items-center gap-2">
                     <i class="fas fa-calendar-alt"></i> الجلسات والمواعيد
-                </button>
-                <button onclick="switchTab('notes')" id="btn-notes" class="tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-gray-100 text-gray-700 hover:bg-gray-200 transition flex items-center gap-2">
-                    <i class="fas fa-sticky-note"></i> ملاحظات الوسيط
-                </button>
-                <button onclick="switchTab('chat')" id="btn-chat" class="tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-gray-100 text-gray-700 hover:bg-gray-200 transition flex items-center gap-2 relative">
-                    <i class="fas fa-comments"></i> محادثة القاضي والوسيط
-                    <span id="chat-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center hidden animate-bounce">0</span>
                 </button>
             </div>
         </nav>
@@ -195,59 +188,12 @@
                 </div>
             </div>
 
-            <!-- 4. قسم ملاحظات الوسيط (متصل سحابياً بجدول notes) -->
-            <div id="tab-notes" class="tab-content hidden space-y-6">
-                <div class="bg-white rounded-2xl shadow-sm border p-5">
-                    <h2 class="text-lg font-bold text-emerald-900 mb-4 flex items-center gap-2">
-                        <i class="fas fa-sticky-note text-emerald-600"></i> ملاحظات الوسيط وتدوينات الجلسات
-                    </h2>
-                    <form id="note-form" onsubmit="saveNote(event)" class="space-y-3 mb-6">
-                        <input type="hidden" id="note-id">
-                        <input type="text" id="note-case" placeholder="رقم القضية أو عنوان الملاحظة" required class="w-full border rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500">
-                        <textarea id="note-content" rows="3" placeholder="اكتب تفاصيل الملاحظة..." required class="w-full border rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
-                        <div class="flex gap-2">
-                            <button type="submit" id="note-submit-btn" class="bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-2.5 px-6 rounded-lg transition">
-                                <i class="fas fa-save"></i> حفظ الملاحظة سحابياً
-                            </button>
-                            <button type="button" onclick="resetNoteForm()" id="note-cancel-btn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2.5 rounded-lg transition hidden">إلغاء</button>
-                        </div>
-                    </form>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="notes-grid"></div>
-                </div>
-            </div>
-
-            <!-- 5. قسم محادثة القاضي والوسيط (متصل سحابياً بجدول messages) -->
-            <div id="tab-chat" class="tab-content hidden space-y-6">
-                <div class="bg-white rounded-2xl shadow-sm border p-5 flex flex-col h-[600px]">
-                    <h2 class="text-lg font-bold text-emerald-900 mb-4 flex items-center gap-2 border-b pb-3">
-                        <i class="fas fa-comments text-emerald-600"></i> قناة المراسلة الداخلية (سحابية بين القاضي والوسيط)
-                    </h2>
-                    
-                    <div id="chat-messages" class="flex-1 overflow-y-auto space-y-3 p-3 bg-gray-50 rounded-xl border mb-4"></div>
-
-                    <form id="chat-form" onsubmit="sendChatMessage(event)" class="flex gap-2">
-                        <input type="hidden" id="chat-edit-id">
-                        <select id="chat-sender" class="border rounded-lg p-2.5 text-sm bg-white outline-none focus:ring-2 focus:ring-emerald-500 font-semibold">
-                            <option value="الوسيط القضائي">الوسيط القضائي</option>
-                            <option value="القاضي المشرف">القاضي المشرف</option>
-                        </select>
-                        <input type="text" id="chat-input" placeholder="اكتب رسالة أو تقرير موجز بخصوص القضية..." required class="flex-1 border rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
-                        <button type="submit" id="chat-submit-btn" class="bg-emerald-700 hover:bg-emerald-800 text-white font-semibold px-6 py-2.5 rounded-lg transition flex items-center gap-2">
-                            <i class="fas fa-paper-plane"></i> إرسال
-                        </button>
-                        <button type="button" onclick="resetChatForm()" id="chat-cancel-btn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2.5 rounded-lg transition hidden">إلغاء</button>
-                    </form>
-                </div>
-            </div>
-
         </main>
     </div>
 
-    <!-- كود الجافاسكريبت المربوط بالكامل بسحابة Supabase -->
+    <!-- كود الجافاسكريبت النظيف والخاص بالقضايا والجلسات فقط -->
     <script>
         let supabaseClient = null;
-        let unreadCount = 0;
 
         window.onload = function() {
             const url = localStorage.getItem('sb_url');
@@ -280,7 +226,7 @@
                 supabaseClient = window.supabase.createClient(url, key);
                 document.getElementById('config-modal').classList.add('hidden');
                 loadAllData();
-                setInterval(loadAllData, 3000); // مزامنة تلقائية لكل الأقسام كل 3 ثوانٍ بين الأجهزة
+                setInterval(loadAllData, 3000); // مزامنة تلقائية كل 3 ثوانٍ بين الأجهزة
             } catch (e) {
                 alert('خطأ في الاتصال بالسحابة.');
             }
@@ -296,19 +242,12 @@
             const activeBtn = document.getElementById('btn-' + tabId);
             activeBtn.classList.remove('bg-gray-100', 'text-gray-700');
             activeBtn.classList.add('bg-emerald-700', 'text-white');
-
-            if(tabId === 'chat') {
-                unreadCount = 0;
-                document.getElementById('chat-badge').classList.add('hidden');
-            }
         }
 
         function loadAllData() {
             if(!supabaseClient) return;
             loadCases();
             loadSessions();
-            loadNotes();
-            loadChatMessages();
         }
 
         // --- 1. القضايا سحابياً ---
@@ -446,105 +385,6 @@
             document.getElementById('session-cancel-btn').classList.add('hidden');
         }
 
-        // --- 3. ملاحظات الوسيط سحابياً (ترتبط بجدول notes الذي أنشأته) ---
-        async function loadNotes() {
-            const { data, error } = await supabaseClient.from('notes').select('*').order('id', { ascending: false });
-            const grid = document.getElementById('notes-grid');
-            if (error || !data) return;
-            
-            grid.innerHTML = '';
-            data.forEach(n => {
-                grid.innerHTML += `
-                    <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 shadow-sm relative space-y-2">
-                        <div class="flex justify-between items-center">
-                            <span class="font-bold text-emerald-900 text-sm"><i class="fas fa-bookmark text-amber-600"></i> القضية: ${n.casenum || ''}</span>
-                            <div class="space-x-2 space-x-reverse">
-                                <button onclick="deleteCloudRecord('notes', ${n.id})" class="text-red-500 hover:text-red-700 text-xs" title="حذف"><i class="fas fa-trash-alt"></i></button>
-                            </div>
-                        </div>
-                        <p class="text-gray-700 text-sm whitespace-pre-wrap">${n.content || ''}</p>
-                    </div>
-                `;
-            });
-        }
-
-        async function saveNote(e) {
-            e.preventDefault();
-            const casenum = document.getElementById('note-case').value.trim();
-            const content = document.getElementById('note-content').value.trim();
-
-            await supabaseClient.from('notes').insert([{ casenum, content }]);
-
-            resetNoteForm();
-            loadNotes();
-        }
-
-        function resetNoteForm() {
-            document.getElementById('note-form').reset();
-            document.getElementById('note-submit-btn').innerHTML = '<i class="fas fa-save"></i> حفظ الملاحظة سحابياً';
-            document.getElementById('note-cancel-btn').classList.add('hidden');
-        }
-
-        // --- 4. محادثة القاضي والوسيط سحابياً (ترتبط بجدول messages) ---
-        async function loadChatMessages() {
-            const { data, error } = await supabaseClient.from('messages').select('*').order('id', { ascending: true });
-            const chatBox = document.getElementById('chat-messages');
-            if (error || !data) return;
-            
-            chatBox.innerHTML = '';
-            data.forEach(m => {
-                const senderName = m.sender || 'الوسيط القضائي';
-                const msgText = m.text || '';
-                const msgTime = m.time || '';
-                const isJudge = senderName.includes('القاضي');
-                
-                chatBox.innerHTML += `
-                    <div class="p-3 rounded-xl border max-w-lg ${isJudge ? 'bg-blue-50 border-blue-200 mr-auto text-left' : 'bg-white border-gray-200 ml-auto'}">
-                        <div class="flex justify-between text-xs text-gray-500 mb-1">
-                            <span class="font-bold text-emerald-800">مرسل من: ${senderName}</span>
-                            <span>${msgTime}</span>
-                        </div>
-                        <p class="text-sm text-gray-800">${msgText}</p>
-                        <div class="flex justify-between items-center mt-2 pt-1 border-t text-xs">
-                            <div class="space-x-2 space-x-reverse">
-                                <button onclick="deleteCloudRecord('messages', ${m.id})" class="text-red-500 hover:text-red-700 font-semibold"><i class="fas fa-trash"></i> حذف</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }
-
-        async function sendChatMessage(e) {
-            e.preventDefault();
-            const sender = document.getElementById('chat-sender').value;
-            const text = document.getElementById('chat-input').value.trim();
-            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-            await supabaseClient.from('messages').insert([{ sender, text, time }]);
-            triggerNotification();
-
-            resetChatForm();
-            loadChatMessages();
-        }
-
-        function resetChatForm() {
-            document.getElementById('chat-form').reset();
-            document.getElementById('chat-submit-btn').innerHTML = '<i class="fas fa-paper-plane"></i> إرسال';
-            document.getElementById('chat-cancel-btn').classList.add('hidden');
-        }
-
-        function triggerNotification() {
-            const activeTab = document.querySelector('.tab-content:not(.hidden)').id;
-            if(activeTab !== 'tab-chat') {
-                unreadCount++;
-                const badge = document.getElementById('chat-badge');
-                badge.innerText = unreadCount;
-                badge.classList.remove('hidden');
-            }
-        }
-
         // --- حذف عام سحابي ---
         async function deleteCloudRecord(table, id) {
             if(confirm('هل أنت متأكد من الحذف سحابياً؟')) {
@@ -555,4 +395,4 @@
     </script>
 </body>
 </html>
-
+           
