@@ -4,9 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>محفظة الوسيط القضائي - مجلس قضاء الشلف</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- html2pdf.js for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         @media print {
             body * { visibility: hidden; }
@@ -42,6 +47,7 @@
     <!-- التطبيق الرئيسي -->
     <div id="app" class="min-h-screen flex flex-col">
         
+        <!-- الشريط العلوي الرسمي -->
         <header class="bg-emerald-900 text-white shadow-lg py-4 px-6 flex flex-col sm:flex-row justify-between items-center gap-3 border-b-4 border-amber-500">
             <div class="flex items-center gap-3">
                 <div class="w-12 h-12 bg-amber-500 rounded-full flex items-center justify-center text-emerald-950 text-2xl font-bold shadow-inner">
@@ -62,6 +68,7 @@
             </div>
         </header>
 
+        <!-- أزرار التنقل الرئيسية -->
         <nav class="bg-white shadow-sm border-b px-4 py-3 no-print">
             <div class="max-w-6xl mx-auto flex flex-wrap gap-2 justify-center md:justify-start">
                 <button onclick="switchTab('cases')" id="btn-cases" class="tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-emerald-700 text-white shadow transition flex items-center gap-2">
@@ -79,9 +86,10 @@
             </div>
         </nav>
 
+        <!-- محتوى الأقسام -->
         <main class="flex-1 max-w-6xl w-full mx-auto p-4 md:p-6">
 
-            <!-- 1. إضافة قضية -->
+            <!-- 1. قسم إضافة قضية جديدة -->
             <div id="tab-cases" class="tab-content space-y-6">
                 <div class="bg-white rounded-2xl shadow-sm border p-5">
                     <h2 class="text-lg font-bold text-emerald-900 mb-4 flex items-center gap-2">
@@ -95,7 +103,7 @@
                         </div>
                         <div>
                             <label class="block text-xs font-semibold mb-1 text-gray-600">أطراف النزاع</label>
-                            <input type="text" id="case-parties" placeholder="مثال: أ ضد ب" required class="w-full border rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+                            <input type="text" id="case-parties" placeholder="مثال: شركة أ ضد السيد ب" required class="w-full border rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500">
                         </div>
                         <div>
                             <label class="block text-xs font-semibold mb-1 text-gray-600">تاريخ ووقت تسجيل القضية</label>
@@ -141,7 +149,7 @@
                 </div>
             </div>
 
-            <!-- 2. القضايا المحلولة -->
+            <!-- 2. قسم القضايا المحلولة -->
             <div id="tab-solved" class="tab-content hidden space-y-6">
                 <div class="bg-white rounded-2xl shadow-sm border p-5">
                     <h2 class="text-lg font-bold text-emerald-900 mb-4 flex items-center gap-2">
@@ -164,7 +172,7 @@
                 </div>
             </div>
 
-            <!-- 3. الجلسات -->
+            <!-- 3. قسم الجلسات والمواعيد (يعمل سحابياً بالكامل) -->
             <div id="tab-sessions" class="tab-content hidden space-y-6">
                 <div class="bg-white rounded-2xl shadow-sm border p-5">
                     <h2 class="text-lg font-bold text-emerald-900 mb-4 flex items-center gap-2">
@@ -228,7 +236,7 @@
                 </div>
             </div>
 
-            <!-- 4. محاضر الصلح وعدم الصلح -->
+            <!-- 4. قسم محاضر الصلح وعدم الصلح (فصل تام ومحاضر مستقلة) -->
             <div id="tab-reports" class="tab-content hidden space-y-6">
                 <div class="bg-white rounded-2xl shadow-sm border p-5">
                     <h2 class="text-lg font-bold text-emerald-900 mb-4 flex items-center gap-2">
@@ -237,10 +245,10 @@
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 bg-gray-50 p-4 rounded-xl border">
                         <div>
-                            <label class="block text-xs font-semibold mb-1 text-gray-600">نوع المحضر</label>
+                            <label class="block text-xs font-semibold mb-1 text-gray-600">اختر نوع المحضر</label>
                             <select id="report-type" onchange="updateReportPreview()" class="w-full border rounded-lg p-2.5 text-sm outline-none bg-white focus:ring-2 focus:ring-emerald-500 font-bold text-emerald-900">
-                                <option value="صلح">محضر صلح نهائي</option>
-                                <option value="عدم صلح">محضر عدم الصلح</option>
+                                <option value="محضر صلح نهائي">محضر صلح نهائي</option>
+                                <option value="محضر عدم الصلح">محضر عدم الصلح</option>
                             </select>
                         </div>
                         <div>
@@ -256,8 +264,8 @@
                             <input type="text" id="report-party2" placeholder="اسم وصفة الطرف الثاني" class="w-full border rounded-lg p-2.5 text-sm outline-none bg-white focus:ring-2 focus:ring-emerald-500">
                         </div>
                         <div class="md:col-span-2">
-                            <label class="block text-xs font-semibold mb-1 text-gray-600">مضمون الاتفاق أو أسباب التعذر</label>
-                            <textarea id="report-details" rows="3" placeholder="اكتب تفاصيل بنود الاتفاق أو أسباب تعذر الصلح..." class="w-full border rounded-lg p-2.5 text-sm outline-none bg-white focus:ring-2 focus:ring-emerald-500"></textarea>
+                            <label class="block text-xs font-semibold mb-1 text-gray-600">مضمون بنود الصلح أو أسباب تعذر الصلح</label>
+                            <textarea id="report-details" rows="3" placeholder="اكتب التفاصيل هنا..." class="w-full border rounded-lg p-2.5 text-sm outline-none bg-white focus:ring-2 focus:ring-emerald-500"></textarea>
                         </div>
                         <div class="md:col-span-2 flex gap-2">
                             <button onclick="saveAndPrintReport()" class="flex-1 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-2.5 rounded-lg transition flex items-center justify-center gap-2">
@@ -266,6 +274,7 @@
                         </div>
                     </div>
 
+                    <!-- معاينة المحضر المخصص -->
                     <div id="print-section" class="bg-white border-2 border-emerald-900 rounded-xl p-8 space-y-6 text-right shadow-inner mb-6">
                         <div class="text-center border-b-2 border-emerald-900 pb-4 space-y-1">
                             <p class="text-xs font-bold text-gray-600">الجمهورية الجزائرية الديمقراطية الشعبية</p>
@@ -282,7 +291,7 @@
                                 <li>الطرف الثاني: <span id="p-party2" class="text-emerald-900">---</span></li>
                             </ul>
                             <p>في الملف رقم: <span id="p-casenum" class="font-bold">---</span> المتعلق بنزاع بين الطرفين.</p>
-                            <p id="p-body-text" class="bg-gray-50 p-4 rounded-lg border">بعد مساعي الوساطة القضائية الحثيثة وتقريب وجهات النظر...</p>
+                            <p id="p-body-text" class="bg-gray-50 p-4 rounded-lg border">بعد مساعي الوساطة القضائية الحثيثة...</p>
                         </div>
 
                         <div class="flex justify-between items-center pt-8 border-t text-sm font-bold">
@@ -302,8 +311,9 @@
                         </div>
                     </div>
 
+                    <!-- أرشيف المحاضر مع زر تحميل PDF -->
                     <div class="bg-white rounded-2xl shadow-sm border p-5 no-print">
-                        <h3 class="text-md font-bold text-emerald-900 mb-3"><i class="fas fa-archive text-emerald-600"></i> أرشيف المحاضر المحفوظة</h3>
+                        <h3 class="text-md font-bold text-emerald-900 mb-3"><i class="fas fa-archive text-emerald-600"></i> أرشيف المحاضر المحفوظة (صلح / عدم صلح) مع تحميل PDF</h3>
                         <div class="overflow-x-auto">
                             <table class="w-full text-right border-collapse text-sm">
                                <thead>
@@ -312,7 +322,7 @@
                                         <th class="p-3">نوع المحضر</th>
                                         <th class="p-3">الأطراف</th>
                                         <th class="p-3">تاريخ ووقت الحفظ</th>
-                                        <th class="p-3 text-center">إجراءات</th>
+                                        <th class="p-3 text-center">إجراءات (تحميل PDF / حذف)</th>
                                     </tr>
                                 </thead>
                                 <tbody id="reports-list"></tbody>
@@ -326,6 +336,7 @@
         </main>
     </div>
 
+    <!-- الكود البرمجي الشامل -->
     <script>
         let supabaseClient = null;
 
@@ -337,7 +348,6 @@
             } else {
                 document.getElementById('config-modal').classList.remove('hidden');
             }
-            // تعيين التاريخ والوقت الحالي افتراضياً في خانة الإضافة
             const now = new Date();
             now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
             document.getElementById('case-datetime').value = now.toISOString().slice(0,16);
@@ -390,6 +400,7 @@
             loadReports();
         }
 
+        // --- القضايا ---
         async function loadCases() {
             const { data, error } = await supabaseClient.from('cases').select('*').order('id', { ascending: false });
             const tbody = document.getElementById('cases-list');
@@ -444,11 +455,9 @@
             const created_at_time = document.getElementById('case-datetime').value;
 
             if(id) {
-                const { error } = await supabaseClient.from('cases').update({ num, parties, status, notes, created_at_time }).eq('id', id);
-                if(error) { alert('خطأ في التحديث: ' + error.message); return; }
+                await supabaseClient.from('cases').update({ num, parties, status, notes, created_at_time }).eq('id', id);
             } else {
-                const { error } = await supabaseClient.from('cases').insert([{ num, parties, status, notes, created_at_time }]);
-                if(error) { alert('خطأ في الحفظ السحابي: ' + error.message); return; }
+                await supabaseClient.from('cases').insert([{ num, parties, status, notes, created_at_time }]);
             }
             resetCaseForm();
             loadCases();
@@ -481,7 +490,9 @@
             loadCases();
         }
 
+        // --- الجلسات ---
         async function loadSessions() {
+            if(!supabaseClient) return;
             const { data, error } = await supabaseClient.from('sessions').select('*').order('id', { ascending: false });
             const tbody = document.getElementById('sessions-list');
             if (error || !data) return;
@@ -544,6 +555,7 @@
             document.getElementById('session-cancel-btn').classList.add('hidden');
         }
 
+        // --- محاضر الصلح وعدم الصلح ---
         function updateReportPreview() {
             const type = document.getElementById('report-type').value;
             const casenum = document.getElementById('report-case-num').value || '---';
@@ -558,12 +570,12 @@
             document.getElementById('p-party2').innerText = party2;
             document.getElementById('p-casenum').innerText = casenum;
 
-            if(type === 'صلح') {
+            if(type === 'محضر صلح نهائي') {
                 document.getElementById('print-title').innerText = "محضر صلح قضائي نهائي";
                 document.getElementById('p-body-text').innerHTML = `بعد مساعي الوساطة القضائية الحثيثة وتقريب وجهات النظر، توصل الطرفان إلى اتفاق ودي شامل حول النزاع موضوع القضية:<br><br><b>بنود الصلح واتفاق الطرفين:</b> ${details}<br><br>وعليه أُثبت هذا المحضر لإقراره وفقاً للتشريع المعمول به.`;
             } else {
                 document.getElementById('print-title').innerText = "محضر عدم الصلح القضائي";
-                document.getElementById('p-body-text').innerHTML = `بعد استنفار كافة جهود الوساطة القضائية وتقريب وجهات النظر بين الطرفين، تعذر الوصول إلى تسوية ودية للنزاع:<br><br><b>أسباب تعذر الصلح:</b> ${details}<br><br>وعليه أُثبت هذا المحضر لإثبات حالة عدم الصلح واستئناف الإجراءات.`;
+                document.getElementById('p-body-text').innerHTML = `بعد استنفار كافة جهود الوساطة القضائية وتقريب وجهات النظر بين الطرفين، تعذر الوصول إلى تسوية ودية للنزاع:<br><br><b>أسباب تعذر الصلح:</b> ${details}<br><br>وعليه أُثبت هذا المحضر لإثبات حالة عدم الصلح واستئناف الإجراءات القضائية الاعتيادية.`;
             }
         }
 
@@ -575,16 +587,18 @@
             
             tbody.innerHTML = '';
             data.forEach(r => {
+                const isSolh = r.type === 'محضر صلح نهائي';
                 tbody.innerHTML += `
                     <tr class="border-b hover:bg-gray-50">
                         <td class="p-3 font-semibold text-emerald-900">${r.casenum || ''}</td>
                         <td class="p-3">
-                            <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${r.type === 'صلح' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">${r.type || ''}</span>
+                            <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${isSolh ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">${r.type || ''}</span>
                         </td>
                         <td class="p-3">${r.party1 || ''} ضد ${r.party2 || ''}</td>
                         <td class="p-3 text-xs text-gray-500">${r.saved_at || '-'}</td>
-                        <td class="p-3 text-center">
-                            <button onclick="deleteCloudRecord('reports', ${r.id})" class="text-red-500 hover:text-red-700" title="حذف من الأرشيف"><i class="fas fa-trash-alt"></i></button>
+                        <td class="p-3 text-center space-x-2 space-x-reverse">
+                            <button onclick="downloadReportPDF('${r.type}', '${r.casenum || ''}', '${r.party1 || ''}', '${r.party2 || ''}', '${r.details || ''}', '${r.saved_at || ''}')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5 rounded-lg shadow transition" title="تحميل PDF"><i class="fas fa-file-pdf ml-1"></i> تحميل PDF</button>
+                            <button onclick="deleteCloudRecord('reports', ${r.id})" class="text-red-500 hover:text-red-700" title="حذف"><i class="fas fa-trash-alt"></i></button>
                         </td>
                     </tr>
                 `;
@@ -600,12 +614,62 @@
             const saved_at = new Date().toLocaleString('ar-DZ');
 
             if(supabaseClient) {
-                const { error } = await supabaseClient.from('reports').insert([{ type, casenum, party1, party2, details, saved_at }]);
-                if(error) { alert('خطأ في حفظ المحضر: ' + error.message); return; }
+                await supabaseClient.from('reports').insert([{ type, casenum, party1, party2, details, saved_at }]);
                 loadReports();
             }
             updateReportPreview();
             window.print();
+        }
+
+        function downloadReportPDF(type, casenum, party1, party2, details, saved_at) {
+            const element = document.createElement('div');
+            element.dir = 'rtl';
+            element.style.padding = '20px';
+            element.style.fontFamily = 'Cairo, sans-serif';
+            element.style.background = '#fff';
+            
+            let bodyContent = '';
+            if(type === 'محضر صلح نهائي') {
+                bodyContent = `بعد مساعي الوساطة القضائية الحثيثة وتقريب وجهات النظر، توصل الطرفان إلى اتفاق ودي شامل حول النزاع موضوع القضية:<br><br><b>بنود الصلح واتفاق الطرفين:</b> ${details}<br><br>وعليه أُثبت هذا المحضر لإقراره وفقاً للتشريع المعمول به.`;
+            } else {
+                bodyContent = `بعد استنفار كافة جهود الوساطة القضائية وتقريب وجهات النظر بين الطرفين، تعذر الوصول إلى تسوية ودية للنزاع:<br><br><b>أسباب تعذر الصلح:</b> ${details}<br><br>وعليه أُثبت هذا المحضر لإثبات حالة عدم الصلح واستئناف الإجراءات.`;
+            }
+
+            element.innerHTML = `
+                <div style="text-align: center; border-bottom: 2px solid #064e3b; padding-bottom: 15px; margin-bottom: 20px;">
+                    <p style="font-size: 12px; font-weight: bold; color: #4b5563;">الجمهورية الجزائرية الديمقراطية الشعبية</p>
+                    <p style="font-size: 12px; font-weight: bold; color: #4b5563;">وزارة العدل - مجلس قضاء الشلف</p>
+                    <h2 style="font-size: 18px; font-weight: bold; color: #064e3b; margin-top: 10px;">${type}</h2>
+                </div>
+                <div style="font-size: 13px; line-height: 1.8;">
+                    <p>تاريخ الحفظ: <b>${saved_at}</b>، بمكتب الوساطة القضائية بمجلس قضاء الشلف.</p>
+                    <p>أمام السيد/ة الوسيط القضائي: <b>حمداد هشام</b>.</p>
+                    <p>الأطراف:</p>
+                    <ul>
+                        <li>الطرف الأول: <b>${party1}</b></li>
+                        <li>الطرف الثاني: <b>${party2}</b></li>
+                    </ul>
+                    <p>رقم القضية / الملف: <b>${casenum}</b></p>
+                    <div style="background: #f9fafb; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb; margin-top: 15px;">
+                        ${bodyContent}
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-top: 40px; font-size: 13px; font-weight: bold;">
+                    <div>إمضاء الطرف الأول:<br><br><br></div>
+                    <div>إمضاء الطرف الثاني:<br><br><br></div>
+                    <div>الوسيط القضائي (ختم وتوقيع):<br>حمداد هشام<br><br></div>
+                </div>
+            `;
+
+            const opt = {
+                margin:       10,
+                filename:     `${type}_${casenum.replace('/', '-')}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().from(element).save();
         }
 
         ['report-type', 'report-case-num', 'report-party1', 'report-party2', 'report-details'].forEach(id => {
@@ -623,4 +687,3 @@
     </script>
 </body>
 </html>
-
