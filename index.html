@@ -244,7 +244,7 @@
         </main>
     </div>
 
-    <!-- كود الجافاسكريبت والربط السحابي الشامل -->
+    <!-- كود الجافاسكريبت والربط السحابي المباشر -->
     <script>
         let supabaseClient = null;
         let unreadCount = 0;
@@ -280,6 +280,8 @@
                 supabaseClient = window.supabase.createClient(url, key);
                 document.getElementById('config-modal').classList.add('hidden');
                 loadAllData();
+                // تحديث تلقائي كل 5 ثوانٍ لضمان المزامنة الفورية بين الهاتف والحاسوب
+                setInterval(loadAllData, 5000);
             } catch (e) {
                 alert('خطأ في الاتصال بالسحابة.');
             }
@@ -303,6 +305,7 @@
         }
 
         function loadAllData() {
+            if(!supabaseClient) return;
             loadCases();
             loadSessions();
             loadNotes();
@@ -311,13 +314,13 @@
 
         // --- 1. القضايا سحابياً ---
         async function loadCases() {
-            if(!supabaseClient) return;
             const { data, error } = await supabaseClient.from('cases').select('*').order('id', { ascending: false });
             const tbody = document.getElementById('cases-list');
             const solvedTbody = document.getElementById('solved-list');
+            if (error || !data) return;
+            
             tbody.innerHTML = '';
             solvedTbody.innerHTML = '';
-            if (error || !data) return;
 
             data.forEach(c => {
                 if(c.status === 'مفصولة / تم الصلح') {
@@ -390,17 +393,16 @@
             loadCases();
         }
 
-        // --- 2. الجلسات سحابياً (دعم مرن لأسماء الأعمدة) ---
+        // --- 2. الجلسات سحابياً ---
         async function loadSessions() {
-            if(!supabaseClient) return;
             const { data, error } = await supabaseClient.from('sessions').select('*').order('id', { ascending: false });
             const tbody = document.getElementById('sessions-list');
-            tbody.innerHTML = '';
             if (error || !data) return;
-
+            
+            tbody.innerHTML = '';
             data.forEach(s => {
-                const cNum = s.case_num || s.caseNum || s.num || '-';
-                const sDate = s.datetime || s.date || '-';
+                const cNum = s.case_num || s.caseNum || '-';
+                const sDate = s.datetime || '-';
                 const sPlace = s.place || '-';
                 tbody.innerHTML += `
                     <tr class="border-b hover:bg-gray-50">
@@ -448,17 +450,16 @@
             document.getElementById('session-cancel-btn').classList.add('hidden');
         }
 
-        // --- 3. الملاحظات سحابياً (دعم مرن لأسماء الأعمدة) ---
+        // --- 3. الملاحظات سحابياً ---
         async function loadNotes() {
-            if(!supabaseClient) return;
             const { data, error } = await supabaseClient.from('notes').select('*').order('id', { ascending: false });
             const grid = document.getElementById('notes-grid');
-            grid.innerHTML = '';
             if (error || !data) return;
-
+            
+            grid.innerHTML = '';
             data.forEach(n => {
                 const cNum = n.case_num || n.caseNum || 'ملاحظة';
-                const cContent = n.content || n.text || '';
+                const cContent = n.content || '';
                 grid.innerHTML += `
                     <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 shadow-sm relative space-y-2">
                         <div class="flex justify-between items-center">
@@ -504,22 +505,20 @@
             document.getElementById('note-cancel-btn').classList.add('hidden');
         }
 
-        // --- 4. المحادثات سحابياً (تدعم جدول messages أو chat تلقائياً) ---
+        // --- 4. المحادثات سحابياً ---
         async function loadChatMessages() {
-            if(!supabaseClient) return;
-            // جرب جلب البيانات من جدول chat أو messages بناءً على ما هو متوفر لديك
             let res = await supabaseClient.from('chat').select('*').order('id', { ascending: true });
             if(res.error || !res.data) {
                 res = await supabaseClient.from('messages').select('*').order('id', { ascending: true });
             }
             const data = res.data;
             const chatBox = document.getElementById('chat-messages');
-            chatBox.innerHTML = '';
             if (!data) return;
-
+            
+            chatBox.innerHTML = '';
             data.forEach(m => {
-                const sender = m.sender || m.user || 'الوسيط القضائي';
-                const text = m.text || m.message || '';
+                const sender = m.sender || 'الوسيط القضائي';
+                const text = m.text || '';
                 const time = m.time || '';
                 const isJudge = sender.includes('القاضي');
                 chatBox.innerHTML += `
@@ -549,7 +548,6 @@
             const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
             let tableName = 'chat';
-            // التحقق من الجدول المستخدم
             let testCheck = await supabaseClient.from('chat').select('id').limit(1);
             if(testCheck.error) {
                 tableName = 'messages';
@@ -558,7 +556,7 @@
             if(editId) {
                 await supabaseClient.from(tableName).update({ sender, text, time }).eq('id', editId);
             } else {
-                await supabaseClient.from(tableName).insert([{ sender, text, time }]);
+                await supabaseClient.from('chat').insert([{ sender, text, time }]);
                 triggerNotification();
             }
 
@@ -591,7 +589,7 @@
             }
         }
 
-        // --- حذف عام مع دعم الجدولين للمحادثات ---
+        // --- حذف عام ---
         async function deleteCloudRecord(table, id) {
             if(confirm('هل أنت متأكد من الحذف سحابياً؟')) {
                 let targetTable = table;
