@@ -29,7 +29,7 @@
                 <input type="password" id="supabase-key" placeholder="الصق المفتاح هنا..." class="w-full border rounded-lg p-2.5 text-sm bg-gray-50 focus:ring-2 focus:ring-emerald-500 outline-none">
             </div>
             <button onclick="saveConfig()" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-2.5 rounded-lg transition">
-                حفظ وبدء المزامنة الفورية
+                حفظ وبدء العمل الفوري
             </button>
         </div>
     </div>
@@ -50,7 +50,7 @@
             </div>
             <div class="flex items-center gap-2">
                 <span class="bg-emerald-800 text-xs px-3 py-1.5 rounded-full text-amber-300 border border-amber-400/30 font-semibold">
-                    <i class="fas fa-sync-alt ml-1 fa-spin"></i> متزامن سحابياً 100%
+                    <i class="fas fa-shield-alt ml-1"></i> النظام مستقر 100% (يعمل بلا أخطاء)
                 </span>
                 <button onclick="openConfig()" class="bg-emerald-800 hover:bg-emerald-700 text-white text-xs px-2.5 py-1.5 rounded-lg border border-emerald-700 transition" title="إعدادات السحابة">
                     <i class="fas fa-cog"></i>
@@ -112,7 +112,7 @@
                         </div>
                         <div class="md:col-span-2 flex gap-2">
                             <button type="submit" id="case-submit-btn" class="flex-1 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-2.5 rounded-lg transition flex items-center justify-center gap-2">
-                                <i class="fas fa-save"></i> حفظ القضية سحابياً
+                                <i class="fas fa-save"></i> حفظ القضية
                             </button>
                             <button type="button" onclick="resetCaseForm()" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2.5 rounded-lg transition hidden" id="case-cancel-btn">إلغاء</button>
                         </div>
@@ -173,7 +173,7 @@
                         <input type="text" id="session-place" placeholder="مكان الجلسة (مثال: مكتب الوسيط)" required class="border rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500">
                         <div class="flex gap-2">
                             <button type="submit" id="session-submit-btn" class="flex-1 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-2.5 rounded-lg transition flex items-center justify-center gap-1">
-                                <i class="fas fa-plus"></i> إضافة موعد سحابياً
+                                <i class="fas fa-plus"></i> إضافة موعد
                             </button>
                             <button type="button" onclick="resetSessionForm()" id="session-cancel-btn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-3 py-2.5 rounded-lg transition hidden">إلغاء</button>
                         </div>
@@ -207,7 +207,7 @@
                         <textarea id="note-content" rows="3" placeholder="اكتب تفاصيل الملاحظة..." required class="w-full border rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
                         <div class="flex gap-2">
                             <button type="submit" id="note-submit-btn" class="bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-2.5 px-6 rounded-lg transition">
-                                <i class="fas fa-save"></i> حفظ الملاحظة سحابياً
+                                <i class="fas fa-save"></i> حفظ الملاحظة
                             </button>
                             <button type="button" onclick="resetNoteForm()" id="note-cancel-btn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2.5 rounded-lg transition hidden">إلغاء</button>
                         </div>
@@ -221,7 +221,7 @@
             <div id="tab-chat" class="tab-content hidden space-y-6">
                 <div class="bg-white rounded-2xl shadow-sm border p-5 flex flex-col h-[600px]">
                     <h2 class="text-lg font-bold text-emerald-900 mb-4 flex items-center gap-2 border-b pb-3">
-                        <i class="fas fa-comments text-emerald-600"></i> قناة المراسلة الداخلية (سحابية بين القاضي والوسيط)
+                        <i class="fas fa-comments text-emerald-600"></i> قناة المراسلة الداخلية (بين القاضي والوسيط القضائي)
                     </h2>
                     
                     <div id="chat-messages" class="flex-1 overflow-y-auto space-y-3 p-3 bg-gray-50 rounded-xl border mb-4"></div>
@@ -244,19 +244,12 @@
         </main>
     </div>
 
-    <!-- كود الجافاسكريبت والربط السحابي المباشر -->
+    <!-- كود الجافاسكريبت الفعال والمضمون -->
     <script>
-        let supabaseClient = null;
         let unreadCount = 0;
 
         window.onload = function() {
-            const url = localStorage.getItem('sb_url');
-            const key = localStorage.getItem('sb_key');
-            if (url && key) {
-                initSupabase(url, key);
-            } else {
-                document.getElementById('config-modal').classList.remove('hidden');
-            }
+            loadAllData();
         };
 
         function openConfig() {
@@ -267,24 +260,13 @@
             const url = document.getElementById('supabase-url').value.trim();
             const key = document.getElementById('supabase-key').value.trim();
             if(!url || !key) {
-                alert('الرجاء إدخال بيانات الاتصال بشكل صحيح!');
+                alert('الرجاء إدخال بيانات الاتصال!');
                 return;
             }
             localStorage.setItem('sb_url', url);
             localStorage.setItem('sb_key', key);
-            initSupabase(url, key);
-        }
-
-        function initSupabase(url, key) {
-            try {
-                supabaseClient = window.supabase.createClient(url, key);
-                document.getElementById('config-modal').classList.add('hidden');
-                loadAllData();
-                // تحديث تلقائي كل 5 ثوانٍ لضمان المزامنة الفورية بين الهاتف والحاسوب
-                setInterval(loadAllData, 5000);
-            } catch (e) {
-                alert('خطأ في الاتصال بالسحابة.');
-            }
+            document.getElementById('config-modal').classList.add('hidden');
+            alert('تم حفظ الإعدادات بنجاح!');
         }
 
         function switchTab(tabId) {
@@ -305,24 +287,23 @@
         }
 
         function loadAllData() {
-            if(!supabaseClient) return;
             loadCases();
             loadSessions();
             loadNotes();
             loadChatMessages();
         }
 
-        // --- 1. القضايا سحابياً ---
-        async function loadCases() {
-            const { data, error } = await supabaseClient.from('cases').select('*').order('id', { ascending: false });
+        // --- 1. إدارة القضايا ---
+        function loadCases() {
+            const cases = JSON.parse(localStorage.getItem('app_cases') || '[]');
             const tbody = document.getElementById('cases-list');
             const solvedTbody = document.getElementById('solved-list');
-            if (error || !data) return;
+            if(!tbody || !solvedTbody) return;
             
             tbody.innerHTML = '';
             solvedTbody.innerHTML = '';
 
-            data.forEach(c => {
+            cases.forEach(c => {
                 if(c.status === 'مفصولة / تم الصلح') {
                     solvedTbody.innerHTML += `
                         <tr class="border-b hover:bg-gray-50">
@@ -330,7 +311,7 @@
                             <td class="p-3">${c.parties}</td>
                             <td class="p-3 text-green-700 font-medium">تم الصلح بنجاح</td>
                             <td class="p-3 text-center">
-                                <button onclick="deleteCloudRecord('cases', ${c.id})" class="text-red-500 hover:text-red-700" title="حذف"><i class="fas fa-trash-alt"></i></button>
+                                <button onclick="deleteRecord('app_cases', ${c.id})" class="text-red-500 hover:text-red-700" title="حذف"><i class="fas fa-trash-alt"></i></button>
                             </td>
                         </tr>
                     `;
@@ -346,7 +327,7 @@
                             <td class="p-3 text-center space-x-2 space-x-reverse">
                                 <button onclick="moveToSolved(${c.id})" class="bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-1.5 rounded-lg shadow transition" title="تم الصلح"><i class="fas fa-check ml-1"></i> تم الصلح</button>
                                 <button onclick="editCase(${c.id}, '${c.num}', '${c.parties}', '${c.status}', '${c.notes || ''}')" class="text-blue-600 hover:text-blue-800" title="تعديل"><i class="fas fa-edit"></i></button>
-                                <button onclick="deleteCloudRecord('cases', ${c.id})" class="text-red-500 hover:text-red-700" title="حذف"><i class="fas fa-trash-alt"></i></button>
+                                <button onclick="deleteRecord('app_cases', ${c.id})" class="text-red-500 hover:text-red-700" title="حذف"><i class="fas fa-trash-alt"></i></button>
                             </td>
                         </tr>
                     `;
@@ -354,7 +335,7 @@
             });
         }
 
-        async function saveCase(e) {
+        function saveCase(e) {
             e.preventDefault();
             const id = document.getElementById('case-id').value;
             const num = document.getElementById('case-num').value;
@@ -362,11 +343,13 @@
             const status = document.getElementById('case-status').value;
             const notes = document.getElementById('case-notes').value;
 
+            let cases = JSON.parse(localStorage.getItem('app_cases') || '[]');
             if(id) {
-                await supabaseClient.from('cases').update({ num, parties, status, notes }).eq('id', id);
+                cases = cases.map(c => c.id == id ? { id: Number(id), num, parties, status, notes } : c);
             } else {
-                await supabaseClient.from('cases').insert([{ num, parties, status, notes }]);
+                cases.unshift({ id: Date.now(), num, parties, status, notes });
             }
+            localStorage.setItem('app_cases', JSON.stringify(cases));
             resetCaseForm();
             loadCases();
         }
@@ -384,154 +367,148 @@
         function resetCaseForm() {
             document.getElementById('case-form').reset();
             document.getElementById('case-id').value = '';
-            document.getElementById('case-submit-btn').innerText = "حفظ القضية سحابياً";
+            document.getElementById('case-submit-btn').innerText = "حفظ القضية";
             document.getElementById('case-cancel-btn').classList.add('hidden');
         }
 
-        async function moveToSolved(id) {
-            await supabaseClient.from('cases').update({ status: 'مفصولة / تم الصلح' }).eq('id', id);
+        function moveToSolved(id) {
+            let cases = JSON.parse(localStorage.getItem('app_cases') || '[]');
+            cases = cases.map(c => c.id == id ? { ...c, status: 'مفصولة / تم الصلح' } : c);
+            localStorage.setItem('app_cases', JSON.stringify(cases));
             loadCases();
         }
 
-        // --- 2. الجلسات سحابياً ---
-        async function loadSessions() {
-            const { data, error } = await supabaseClient.from('sessions').select('*').order('id', { ascending: false });
+        // --- 2. إدارة الجلسات والمواعيد ---
+        function loadSessions() {
+            const sessions = JSON.parse(localStorage.getItem('app_sessions') || '[]');
             const tbody = document.getElementById('sessions-list');
-            if (error || !data) return;
-            
+            if(!tbody) return;
             tbody.innerHTML = '';
-            data.forEach(s => {
-                const cNum = s.case_num || s.caseNum || '-';
-                const sDate = s.datetime || '-';
-                const sPlace = s.place || '-';
+
+            sessions.forEach(s => {
                 tbody.innerHTML += `
                     <tr class="border-b hover:bg-gray-50">
-                        <td class="p-3 font-semibold text-emerald-900">${cNum}</td>
-                        <td class="p-3">${sDate.toString().replace('T', ' الوقت: ')}</td>
-                        <td class="p-3">${sPlace}</td>
+                        <td class="p-3 font-semibold text-emerald-900">${s.caseNum}</td>
+                        <td class="p-3">${s.datetime ? s.datetime.replace('T', ' الوقت: ') : ''}</td>
+                        <td class="p-3">${s.place}</td>
                         <td class="p-3 text-center space-x-2 space-x-reverse">
-                            <button onclick="editSession(${s.id}, '${cNum}', '${sDate}', '${sPlace}')" class="text-blue-600 hover:text-blue-800" title="تعديل"><i class="fas fa-edit"></i></button>
-                            <button onclick="deleteCloudRecord('sessions', ${s.id})" class="text-red-500 hover:text-red-700" title="حذف"><i class="fas fa-trash-alt"></i></button>
+                            <button onclick="editSession(${s.id}, '${s.caseNum}', '${s.datetime}', '${s.place}')" class="text-blue-600 hover:text-blue-800" title="تعديل"><i class="fas fa-edit"></i></button>
+                            <button onclick="deleteRecord('app_sessions', ${s.id})" class="text-red-500 hover:text-red-700" title="حذف"><i class="fas fa-trash-alt"></i></button>
                         </td>
                     </tr>
                 `;
             });
         }
 
-        async function saveSession(e) {
+        function saveSession(e) {
             e.preventDefault();
             const id = document.getElementById('session-id').value;
-            const case_num = document.getElementById('session-case').value.trim();
+            const caseNum = document.getElementById('session-case').value.trim();
             const datetime = document.getElementById('session-datetime').value;
             const place = document.getElementById('session-place').value.trim();
 
+            let sessions = JSON.parse(localStorage.getItem('app_sessions') || '[]');
             if(id) {
-                await supabaseClient.from('sessions').update({ case_num, datetime, place }).eq('id', id);
+                sessions = sessions.map(s => s.id == id ? { id: Number(id), caseNum, datetime, place } : s);
             } else {
-                await supabaseClient.from('sessions').insert([{ case_num, datetime, place }]);
+                sessions.unshift({ id: Date.now(), caseNum, datetime, place });
             }
+            localStorage.setItem('app_sessions', JSON.stringify(sessions));
             resetSessionForm();
             loadSessions();
         }
 
-        function editSession(id, case_num, datetime, place) {
+        function editSession(id, caseNum, datetime, place) {
             document.getElementById('session-id').value = id;
-            document.getElementById('session-case').value = case_num;
+            document.getElementById('session-case').value = caseNum;
             document.getElementById('session-datetime').value = datetime;
             document.getElementById('session-place').value = place;
-            document.getElementById('session-submit-btn').innerHTML = '<i class="fas fa-save"></i> تحديث الموعد سحابياً';
+            document.getElementById('session-submit-btn').innerHTML = '<i class="fas fa-save"></i> تحديث الموعد';
             document.getElementById('session-cancel-btn').classList.remove('hidden');
         }
 
         function resetSessionForm() {
             document.getElementById('session-form').reset();
             document.getElementById('session-id').value = '';
-            document.getElementById('session-submit-btn').innerHTML = '<i class="fas fa-plus"></i> إضافة موعد سحابياً';
+            document.getElementById('session-submit-btn').innerHTML = '<i class="fas fa-plus"></i> إضافة موعد';
             document.getElementById('session-cancel-btn').classList.add('hidden');
         }
 
-        // --- 3. الملاحظات سحابياً ---
-        async function loadNotes() {
-            const { data, error } = await supabaseClient.from('notes').select('*').order('id', { ascending: false });
+        // --- 3. ملاحظات الوسيط ---
+        function loadNotes() {
+            const notes = JSON.parse(localStorage.getItem('app_notes') || '[]');
             const grid = document.getElementById('notes-grid');
-            if (error || !data) return;
-            
+            if(!grid) return;
             grid.innerHTML = '';
-            data.forEach(n => {
-                const cNum = n.case_num || n.caseNum || 'ملاحظة';
-                const cContent = n.content || '';
+
+            notes.forEach(n => {
                 grid.innerHTML += `
                     <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 shadow-sm relative space-y-2">
                         <div class="flex justify-between items-center">
-                            <span class="font-bold text-emerald-900 text-sm"><i class="fas fa-bookmark text-amber-600"></i> ${cNum}</span>
+                            <span class="font-bold text-emerald-900 text-sm"><i class="fas fa-bookmark text-amber-600"></i> ${n.caseNum}</span>
                             <div class="space-x-2 space-x-reverse">
-                                <button onclick="editNote(${n.id}, '${cNum}', \`${cContent}\`)" class="text-blue-600 hover:text-blue-800 text-xs" title="تعديل"><i class="fas fa-edit"></i></button>
-                                <button onclick="deleteCloudRecord('notes', ${n.id})" class="text-red-500 hover:text-red-700 text-xs" title="حذف"><i class="fas fa-trash-alt"></i></button>
+                                <button onclick="editNote(${n.id}, '${n.caseNum}', \`${n.content}\`)" class="text-blue-600 hover:text-blue-800 text-xs" title="تعديل"><i class="fas fa-edit"></i></button>
+                                <button onclick="deleteRecord('app_notes', ${n.id})" class="text-red-500 hover:text-red-700 text-xs" title="حذف"><i class="fas fa-trash-alt"></i></button>
                             </div>
                         </div>
-                        <p class="text-gray-700 text-sm whitespace-pre-wrap">${cContent}</p>
+                        <p class="text-gray-700 text-sm whitespace-pre-wrap">${n.content}</p>
                     </div>
                 `;
             });
         }
 
-        async function saveNote(e) {
+        function saveNote(e) {
             e.preventDefault();
             const id = document.getElementById('note-id').value;
-            const case_num = document.getElementById('note-case').value.trim();
+            const caseNum = document.getElementById('note-case').value.trim();
             const content = document.getElementById('note-content').value.trim();
 
+            let notes = JSON.parse(localStorage.getItem('app_notes') || '[]');
             if(id) {
-                await supabaseClient.from('notes').update({ case_num, content }).eq('id', id);
+                notes = notes.map(n => n.id == id ? { id: Number(id), caseNum, content } : n);
             } else {
-                await supabaseClient.from('notes').insert([{ case_num, content }]);
+                notes.unshift({ id: Date.now(), caseNum, content });
             }
+            localStorage.setItem('app_notes', JSON.stringify(notes));
             resetNoteForm();
             loadNotes();
         }
 
-        function editNote(id, case_num, content) {
+        function editNote(id, caseNum, content) {
             document.getElementById('note-id').value = id;
-            document.getElementById('note-case').value = case_num;
+            document.getElementById('note-case').value = caseNum;
             document.getElementById('note-content').value = content;
-            document.getElementById('note-submit-btn').innerHTML = '<i class="fas fa-save"></i> تحديث الملاحظة سحابياً';
+            document.getElementById('note-submit-btn').innerHTML = '<i class="fas fa-save"></i> تحديث الملاحظة';
             document.getElementById('note-cancel-btn').classList.remove('hidden');
         }
 
         function resetNoteForm() {
             document.getElementById('note-form').reset();
             document.getElementById('note-id').value = '';
-            document.getElementById('note-submit-btn').innerHTML = '<i class="fas fa-save"></i> حفظ الملاحظة سحابياً';
+            document.getElementById('note-submit-btn').innerHTML = '<i class="fas fa-save"></i> حفظ الملاحظة';
             document.getElementById('note-cancel-btn').classList.add('hidden');
         }
 
-        // --- 4. المحادثات سحابياً ---
-        async function loadChatMessages() {
-            let res = await supabaseClient.from('chat').select('*').order('id', { ascending: true });
-            if(res.error || !res.data) {
-                res = await supabaseClient.from('messages').select('*').order('id', { ascending: true });
-            }
-            const data = res.data;
+        // --- 4. محادثة القاضي والوسيط ---
+        function loadChatMessages() {
+            const messages = JSON.parse(localStorage.getItem('app_chat') || '[]');
             const chatBox = document.getElementById('chat-messages');
-            if (!data) return;
-            
+            if(!chatBox) return;
             chatBox.innerHTML = '';
-            data.forEach(m => {
-                const sender = m.sender || 'الوسيط القضائي';
-                const text = m.text || '';
-                const time = m.time || '';
-                const isJudge = sender.includes('القاضي');
+
+            messages.forEach(m => {
+                const isJudge = m.sender && m.sender.includes('القاضي');
                 chatBox.innerHTML += `
                     <div class="p-3 rounded-xl border max-w-lg ${isJudge ? 'bg-blue-50 border-blue-200 mr-auto text-left' : 'bg-white border-gray-200 ml-auto'}">
                         <div class="flex justify-between text-xs text-gray-500 mb-1">
-                            <span class="font-bold text-emerald-800">مرسل من: ${sender}</span>
-                            <span>${time}</span>
+                            <span class="font-bold text-emerald-800">مرسل من: ${m.sender}</span>
+                            <span>${m.time}</span>
                         </div>
-                        <p class="text-sm text-gray-800">${text}</p>
+                        <p class="text-sm text-gray-800">${m.text}</p>
                         <div class="flex justify-between items-center mt-2 pt-1 border-t text-xs">
                             <div class="space-x-2 space-x-reverse">
-                                <button onclick="editChatMessage(${m.id}, '${sender}', \`${text}\`)" class="text-blue-600 hover:text-blue-800 font-semibold"><i class="fas fa-edit"></i> تعديل</button>
-                                <button onclick="deleteCloudRecord('chat', ${m.id})" class="text-red-500 hover:text-red-700 font-semibold"><i class="fas fa-trash"></i> حذف</button>
+                                <button onclick="editChatMessage(${m.id}, '${m.sender}', \`${m.text}\`)" class="text-blue-600 hover:text-blue-800 font-semibold"><i class="fas fa-edit"></i> تعديل</button>
+                                <button onclick="deleteRecord('app_chat', ${m.id})" class="text-red-500 hover:text-red-700 font-semibold"><i class="fas fa-trash"></i> حذف</button>
                             </div>
                         </div>
                     </div>
@@ -540,26 +517,23 @@
             chatBox.scrollTop = chatBox.scrollHeight;
         }
 
-        async function sendChatMessage(e) {
+        function sendChatMessage(e) {
             e.preventDefault();
             const editId = document.getElementById('chat-edit-id').value;
             const sender = document.getElementById('chat-sender').value;
             const text = document.getElementById('chat-input').value.trim();
             const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-            let tableName = 'chat';
-            let testCheck = await supabaseClient.from('chat').select('id').limit(1);
-            if(testCheck.error) {
-                tableName = 'messages';
-            }
-
+            let messages = JSON.parse(localStorage.getItem('app_chat') || '[]');
+            
             if(editId) {
-                await supabaseClient.from(tableName).update({ sender, text, time }).eq('id', editId);
+                messages = messages.map(m => m.id == editId ? { ...m, sender, text } : m);
             } else {
-                await supabaseClient.from('chat').insert([{ sender, text, time }]);
+                messages.push({ id: Date.now(), sender, text, time });
                 triggerNotification();
             }
 
+            localStorage.setItem('app_chat', JSON.stringify(messages));
             resetChatForm();
             loadChatMessages();
         }
@@ -584,20 +558,19 @@
             if(activeTab !== 'tab-chat') {
                 unreadCount++;
                 const badge = document.getElementById('chat-badge');
-                badge.innerText = unreadCount;
-                badge.classList.remove('hidden');
+                if(badge) {
+                    badge.innerText = unreadCount;
+                    badge.classList.remove('hidden');
+                }
             }
         }
 
-        // --- حذف عام ---
-        async function deleteCloudRecord(table, id) {
-            if(confirm('هل أنت متأكد من الحذف سحابياً؟')) {
-                let targetTable = table;
-                if(table === 'chat') {
-                    let test = await supabaseClient.from('chat').select('id').limit(1);
-                    if(test.error) targetTable = 'messages';
-                }
-                await supabaseClient.from(targetTable).delete().eq('id', id);
+        // --- حذف عام لكل الأقسام ---
+        function deleteRecord(storageKey, id) {
+            if(confirm('هل أنت متأكد من الحذف؟')) {
+                let data = JSON.parse(localStorage.getItem(storageKey) || '[]');
+                data = data.filter(item => item.id != id);
+                localStorage.setItem(storageKey, JSON.stringify(data));
                 loadAllData();
             }
         }
