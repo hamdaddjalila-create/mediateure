@@ -3,13 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>محفظة الوسيط القضائي - LegalTech</title>
+    <title>محفظة الوسيط القضائي - مجلس قضاء الشلف</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @media print {
+            body * { visibility: hidden; }
+            #print-section, #print-section * { visibility: visible; }
+            #print-section { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; }
+            .no-print { display: none !important; }
+        }
+    </style>
 </head>
 <body class="bg-gray-100 font-sans text-gray-800">
 
@@ -59,7 +67,7 @@
         </header>
 
         <!-- أزرار التنقل الرئيسية -->
-        <nav class="bg-white shadow-sm border-b px-4 py-3">
+        <nav class="bg-white shadow-sm border-b px-4 py-3 no-print">
             <div class="max-w-6xl mx-auto flex flex-wrap gap-2 justify-center md:justify-start">
                 <button onclick="switchTab('cases')" id="btn-cases" class="tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-emerald-700 text-white shadow transition flex items-center gap-2">
                     <i class="fas fa-folder-plus"></i> إضافة قضية جديدة
@@ -69,6 +77,9 @@
                 </button>
                 <button onclick="switchTab('sessions')" id="btn-sessions" class="tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-gray-100 text-gray-700 hover:bg-gray-200 transition flex items-center gap-2">
                     <i class="fas fa-calendar-alt"></i> الجلسات والمواعيد
+                </button>
+                <button onclick="switchTab('reports')" id="btn-reports" class="tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-gray-100 text-gray-700 hover:bg-gray-200 transition flex items-center gap-2">
+                    <i class="fas fa-file-contract"></i> محاضر الصلح وعدم الصلح
                 </button>
             </div>
         </nav>
@@ -119,7 +130,8 @@
                             <thead>
                                 <tr class="bg-gray-100 text-gray-700 border-b">
                                     <th class="p-3">رقم القضية</th>
-                                    <th class="p-3">الأطراف</th>
+                                    <th class="p-3">أطراف النزاع</th>
+                                    <th class="p-3">تاريخ ووقت الإضافة</th>
                                     <th class="p-3">الحالة</th>
                                     <th class="p-3">ملاحظات</th>
                                     <th class="p-3 text-center">إجراءات (تم الصلح / تعديل / حذف)</th>
@@ -135,7 +147,7 @@
             <div id="tab-solved" class="tab-content hidden space-y-6">
                 <div class="bg-white rounded-2xl shadow-sm border p-5">
                     <h2 class="text-lg font-bold text-emerald-900 mb-4 flex items-center gap-2">
-                        <i class="fas fa-check-double text-emerald-600"></i> سجل القضايا المحلولة (تم الصلح فيها)
+                        <i class="fas fa-check-double text-emerald-600"></i> سجل القضايا المحلولة (تم الصلح فيها مع التاريخ والوقت)
                     </h2>
                     <div class="overflow-x-auto">
                         <table class="w-full text-right border-collapse text-sm">
@@ -143,6 +155,7 @@
                                 <tr class="bg-gray-100 text-gray-700 border-b">
                                     <th class="p-3">رقم القضية</th>
                                     <th class="p-3">الأطراف</th>
+                                    <th class="p-3">تاريخ ووقت إتمام الصلح</th>
                                     <th class="p-3">تفاصيل الصلح</th>
                                     <th class="p-3 text-center">إجراءات</th>
                                 </tr>
@@ -157,18 +170,45 @@
             <div id="tab-sessions" class="tab-content hidden space-y-6">
                 <div class="bg-white rounded-2xl shadow-sm border p-5">
                     <h2 class="text-lg font-bold text-emerald-900 mb-4 flex items-center gap-2">
-                        <i class="fas fa-calendar-check text-emerald-600"></i> جدول الجلسات والمواعيد
+                        <i class="fas fa-calendar-check text-emerald-600"></i> جدول الجلسات والمواعيد وحالة التبليغ
                     </h2>
-                    <form id="session-form" onsubmit="saveSession(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <form id="session-form" onsubmit="saveSession(event)" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                         <input type="hidden" id="session-id">
-                        <input type="text" id="session-case" placeholder="رقم القضية المرتبطة" required class="border rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500">
-                        <input type="datetime-local" id="session-datetime" required class="border rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500">
-                        <input type="text" id="session-place" placeholder="مكان الجلسة (مثال: مكتب الوسيط)" required class="border rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500">
-                        <div class="flex gap-2">
+                        <div>
+                            <label class="block text-xs font-semibold mb-1 text-gray-600">رقم القضية</label>
+                            <input type="text" id="session-case" placeholder="رقم القضية المرتبطة" required class="w-full border rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold mb-1 text-gray-600">تاريخ ووقت الجلسة</label>
+                            <input type="datetime-local" id="session-datetime" required class="w-full border rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold mb-1 text-gray-600">مكان الجلسة</label>
+                            <input type="text" id="session-place" placeholder="مثال: مكتب الوسيط" required class="w-full border rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold mb-1 text-gray-600">طبيعة حضور الأطراف</label>
+                            <select id="session-attendance-type" class="w-full border rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+                                <option value="مشتركة مع الطرفين">جلسة مشتركة مع الطرفين</option>
+                                <option value="مع طرف واحد">جلسة منفردة مع طرف واحد</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold mb-1 text-gray-600">أسماء الأطراف المعنية بالحضور</label>
+                            <input type="text" id="session-parties-names" placeholder="اسم الطرف الحاضر تحديداً" required class="w-full border rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold mb-1 text-gray-600">حالة التبليغ والاستدعاء</label>
+                            <select id="session-notification-status" class="w-full border rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+                                <option value="تم الاستدعاء والتبليغ">تم الاستدعاء والتبليغ</option>
+                                <option value="في انتظار التأكيد">في انتظار التأكيد</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-2 lg:col-span-3 flex gap-2">
                             <button type="submit" id="session-submit-btn" class="flex-1 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-2.5 rounded-lg transition flex items-center justify-center gap-1">
                                 <i class="fas fa-plus"></i> إضافة موعد سحابياً
                             </button>
-                            <button type="button" onclick="resetSessionForm()" id="session-cancel-btn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-3 py-2.5 rounded-lg transition hidden">إلغاء</button>
+                            <button type="button" onclick="resetSessionForm()" id="session-cancel-btn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2.5 rounded-lg transition hidden">إلغاء</button>
                         </div>
                     </form>
 
@@ -179,6 +219,8 @@
                                     <th class="p-3">رقم القضية</th>
                                     <th class="p-3">تاريخ ووقت الجلسة</th>
                                     <th class="p-3">المكان</th>
+                                    <th class="p-3">طبيعة الحضور والأطراف</th>
+                                    <th class="p-3">حالة التبليغ</th>
                                     <th class="p-3 text-center">إجراءات (تعديل / حذف)</th>
                                 </tr>
                             </thead>
@@ -188,10 +230,88 @@
                 </div>
             </div>
 
+            <!-- 4. قسم محاضر الصلح وعدم الصلح -->
+            <div id="tab-reports" class="tab-content hidden space-y-6">
+                <div class="bg-white rounded-2xl shadow-sm border p-5">
+                    <h2 class="text-lg font-bold text-emerald-900 mb-4 flex items-center gap-2">
+                        <i class="fas fa-file-signature text-emerald-600"></i> مولد محاضر الصلح وعدم الصلح القانونية
+                    </h2>
+                    
+                    <!-- نموذج إدخال بيانات المحضر -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 bg-gray-50 p-4 rounded-xl border">
+                        <div>
+                            <label class="block text-xs font-semibold mb-1 text-gray-600">نوع المحضر</label>
+                            <select id="report-type" class="w-full border rounded-lg p-2.5 text-sm outline-none bg-white focus:ring-2 focus:ring-emerald-500 font-bold text-emerald-900">
+                                <option value="صلح">محضر صلح نهائي</option>
+                                <option value="عدم صلح">محضر عدم الصلح</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold mb-1 text-gray-600">رقم القضية / الملف</label>
+                            <input type="text" id="report-case-num" placeholder="مثال: 2026/45" class="w-full border rounded-lg p-2.5 text-sm outline-none bg-white focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold mb-1 text-gray-600">الطرف الأول</label>
+                            <input type="text" id="report-party1" placeholder="اسم وصفة الطرف الأول" class="w-full border rounded-lg p-2.5 text-sm outline-none bg-white focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold mb-1 text-gray-600">الطرف الثاني</label>
+                            <input type="text" id="report-party2" placeholder="اسم وصفة الطرف الثاني" class="w-full border rounded-lg p-2.5 text-sm outline-none bg-white focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-semibold mb-1 text-gray-600">مضمون الاتفاق أو أسباب التعذر</label>
+                            <textarea id="report-details" rows="3" placeholder="اكتب تفاصيل بنود الاتفاق أو أسباب تعذر الصلح باختصار..." class="w-full border rounded-lg p-2.5 text-sm outline-none bg-white focus:ring-2 focus:ring-emerald-500"></textarea>
+                        </div>
+                        <div class="md:col-span-2 flex gap-2">
+                            <button onclick="generateReport()" class="flex-1 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-2.5 rounded-lg transition flex items-center justify-center gap-2">
+                                <i class="fas fa-print"></i> معاينة وطباعة المحضر رسمياً
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- معاينة المحضر الجاهزة للطباعة والتوثيق الزمني -->
+                    <div id="print-section" class="bg-white border-2 border-emerald-900 rounded-xl p-8 space-y-6 text-right shadow-inner">
+                        <div class="text-center border-b-2 border-emerald-900 pb-4 space-y-1">
+                            <p class="text-xs font-bold text-gray-600">الجمهورية الجزائرية الديمقراطية الشعبية</p>
+                            <p class="text-xs font-bold text-gray-600">وزارة العدل - مجلس قضاء الشلف</p>
+                            <h3 id="print-title" class="text-xl font-extrabold text-emerald-900 pt-2">محضر صلح قضائي</h3>
+                        </div>
+
+                        <div class="space-y-4 text-sm leading-relaxed">
+                            <p>إنه في يوم <span id="p-date" class="font-bold underline">---</span> على الساعة <span id="p-time" class="font-bold underline">---</span>، بمكتب الوساطة القضائية بمجلس قضاء الشلف.</p>
+                            <p>أمام السيد/ة الوسيط القضائي: <span class="font-bold">حمداد هشام</span>.</p>
+                            <p>حضر كل من الطرفين:</p>
+                            <ul class="list-disc list-inside space-y-1 pr-4 font-semibold">
+                                <li>الطرف الأول: <span id="p-party1" class="text-emerald-900">---</span></li>
+                                <li>الطرف الثاني: <span id="p-party2" class="text-emerald-900">---</span></li>
+                            </ul>
+                            <p>في الملف رقم: <span id="p-casenum" class="font-bold">---</span> المتعلق بنزاع بين الطرفين.</p>
+                            <p id="p-body-text" class="bg-gray-50 p-4 rounded-lg border">وبعد الاستماع لأقوال الطرفين وتقريب وجهات النظر بينهما، اتفق الطرفان نهائياً على ما يلي...</p>
+                        </div>
+
+                        <div class="flex justify-between items-center pt-8 border-t text-sm font-bold">
+                            <div>
+                                <p>إمضاء الطرف الأول:</p>
+                                <div class="h-16"></div>
+                            </div>
+                            <div>
+                                <p>إمضاء الطرف الثاني:</p>
+                                <div class="h-16"></div>
+                            </div>
+                            <div>
+                                <p>الوسيط القضائي (ختم وتوقيع):</p>
+                                <p class="text-xs text-gray-500 font-normal">حمداد هشام</p>
+                                <div class="h-16"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </main>
     </div>
 
-    <!-- كود الجافاسكريبت النظيف والخاص بالقضايا والجلسات فقط -->
+    <!-- كود الجافاسكريبت الشامل -->
     <script>
         let supabaseClient = null;
 
@@ -226,7 +346,7 @@
                 supabaseClient = window.supabase.createClient(url, key);
                 document.getElementById('config-modal').classList.add('hidden');
                 loadAllData();
-                setInterval(loadAllData, 3000); // مزامنة تلقائية كل 3 ثوانٍ بين الأجهزة
+                setInterval(loadAllData, 3000); // مزامنة تلقائية كل 3 ثوانٍ
             } catch (e) {
                 alert('خطأ في الاتصال بالسحابة.');
             }
@@ -250,7 +370,7 @@
             loadSessions();
         }
 
-        // --- 1. القضايا سحابياً ---
+        // --- 1. القضايا وسجل المحلولة بالتاريخ والوقت ---
         async function loadCases() {
             const { data, error } = await supabaseClient.from('cases').select('*').order('id', { ascending: false });
             const tbody = document.getElementById('cases-list');
@@ -261,34 +381,38 @@
             solvedTbody.innerHTML = '';
 
             data.forEach(c => {
+                // إذا تم تحويلها للمحلولة
                 if(c.status === 'مفصولة / تم الصلح') {
                     solvedTbody.innerHTML += `
                         <tr class="border-b hover:bg-gray-50">
                             <td class="p-3 font-semibold text-emerald-900">${c.num || ''}</td>
                             <td class="p-3">${c.parties || ''}</td>
-                            <td class="p-3 text-green-700 font-medium">تم الصلح بنجاح</td>
+                            <td class="p-3 text-emerald-800 font-medium">${c.solved_at || '-'}</td>
+                            <td class="p-3 text-green-700 font-medium">تم الصلح بنجاح وأرشفة الملف</td>
                             <td class="p-3 text-center">
-                                <button onclick="deleteCloudRecord('cases', ${c.id})" class="text-red-500 hover:text-red-700" title="حذف"><i class="fas fa-trash-alt"></i></button>
-                            </td>
-                        </tr>
-                    `;
-                } else {
-                    tbody.innerHTML += `
-                        <tr class="border-b hover:bg-gray-50">
-                            <td class="p-3 font-semibold text-emerald-900">${c.num || ''}</td>
-                            <td class="p-3">${c.parties || ''}</td>
-                            <td class="p-3">
-                                <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${c.status === 'جارية' ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800'}">${c.status || ''}</span>
-                            </td>
-                            <td class="p-3 text-gray-600">${c.notes || '-'}</td>
-                            <td class="p-3 text-center space-x-2 space-x-reverse">
-                                <button onclick="moveToSolved(${c.id})" class="bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-1.5 rounded-lg shadow transition" title="تم الصلح"><i class="fas fa-check ml-1"></i> تم الصلح</button>
-                                <button onclick="editCase(${c.id}, '${c.num || ''}', '${c.parties || ''}', '${c.status || ''}', '${c.notes || ''}')" class="text-blue-600 hover:text-blue-800" title="تعديل"><i class="fas fa-edit"></i></button>
-                                <button onclick="deleteCloudRecord('cases', ${c.id})" class="text-red-500 hover:text-red-700" title="حذف"><i class="fas fa-trash-alt"></i></button>
+                                <button onclick="deleteCloudRecord('cases', ${c.id})" class="text-red-500 hover:text-red-700" title="حذف الأرشيف"><i class="fas fa-trash-alt"></i></button>
                             </td>
                         </tr>
                     `;
                 }
+                
+                // الجدول العام للقضايا الجارية (تبقى موجودة حتى تحذفها أنت)
+                tbody.innerHTML += `
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="p-3 font-semibold text-emerald-900">${c.num || ''}</td>
+                        <td class="p-3">${c.parties || ''}</td>
+                        <td class="p-3 text-xs text-gray-500">${c.created_at_time || '-'}</td>
+                        <td class="p-3">
+                            <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${c.status === 'جارية' ? 'bg-amber-100 text-amber-800' : c.status === 'مفصولة / تم الصلح' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">${c.status || ''}</span>
+                        </td>
+                        <td class="p-3 text-gray-600">${c.notes || '-'}</td>
+                        <td class="p-3 text-center space-x-2 space-x-reverse">
+                            <button onclick="moveToSolved(${c.id})" class="bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-1.5 rounded-lg shadow transition" title="تم الصلح"><i class="fas fa-check ml-1"></i> تم الصلح</button>
+                            <button onclick="editCase(${c.id}, '${c.num || ''}', '${c.parties || ''}', '${c.status || ''}', '${c.notes || ''}')" class="text-blue-600 hover:text-blue-800" title="تعديل"><i class="fas fa-edit"></i></button>
+                            <button onclick="deleteCloudRecord('cases', ${c.id})" class="text-red-500 hover:text-red-700" title="حذف نهائي"><i class="fas fa-trash-alt"></i></button>
+                        </td>
+                    </tr>
+                `;
             });
         }
 
@@ -299,11 +423,12 @@
             const parties = document.getElementById('case-parties').value;
             const status = document.getElementById('case-status').value;
             const notes = document.getElementById('case-notes').value;
+            const created_at_time = new Date().toLocaleString('ar-DZ');
 
             if(id) {
                 await supabaseClient.from('cases').update({ num, parties, status, notes }).eq('id', id);
             } else {
-                await supabaseClient.from('cases').insert([{ num, parties, status, notes }]);
+                await supabaseClient.from('cases').insert([{ num, parties, status, notes, created_at_time }]);
             }
             resetCaseForm();
             loadCases();
@@ -327,11 +452,12 @@
         }
 
         async function moveToSolved(id) {
-            await supabaseClient.from('cases').update({ status: 'مفصولة / تم الصلح' }).eq('id', id);
+            const solved_at = new Date().toLocaleString('ar-DZ');
+            await supabaseClient.from('cases').update({ status: 'مفصولة / تم الصلح', solved_at }).eq('id', id);
             loadCases();
         }
 
-        // --- 2. الجلسات سحابياً ---
+        // --- 2. الجلسات مع حضور الأطراف وحالة التبليغ ---
         async function loadSessions() {
             const { data, error } = await supabaseClient.from('sessions').select('*').order('id', { ascending: false });
             const tbody = document.getElementById('sessions-list');
@@ -344,8 +470,12 @@
                         <td class="p-3 font-semibold text-emerald-900">${s.casenum || ''}</td>
                         <td class="p-3">${s.datetime ? s.datetime.toString().replace('T', ' الوقت: ') : ''}</td>
                         <td class="p-3">${s.place || ''}</td>
+                        <td class="p-3 text-xs font-medium text-gray-700">(${s.attendance_type || 'مشتركة'}): ${s.parties_names || '-'}</td>
+                        <td class="p-3">
+                            <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${s.notification_status === 'تم الاستدعاء والتبليغ' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}">${s.notification_status || 'في انتظار التبليغ'}</span>
+                        </td>
                         <td class="p-3 text-center space-x-2 space-x-reverse">
-                            <button onclick="editSession(${s.id}, '${s.casenum || ''}', '${s.datetime || ''}', '${s.place || ''}')" class="text-blue-600 hover:text-blue-800" title="تعديل"><i class="fas fa-edit"></i></button>
+                            <button onclick="editSession(${s.id}, '${s.casenum || ''}', '${s.datetime || ''}', '${s.place || ''}', '${s.attendance_type || ''}', '${s.parties_names || ''}', '${s.notification_status || ''}')" class="text-blue-600 hover:text-blue-800" title="تعديل"><i class="fas fa-edit"></i></button>
                             <button onclick="deleteCloudRecord('sessions', ${s.id})" class="text-red-500 hover:text-red-700" title="حذف"><i class="fas fa-trash-alt"></i></button>
                         </td>
                     </tr>
@@ -359,21 +489,27 @@
             const casenum = document.getElementById('session-case').value.trim();
             const datetime = document.getElementById('session-datetime').value;
             const place = document.getElementById('session-place').value.trim();
+            const attendance_type = document.getElementById('session-attendance-type').value;
+            const parties_names = document.getElementById('session-parties-names').value.trim();
+            const notification_status = document.getElementById('session-notification-status').value;
 
             if(id) {
-                await supabaseClient.from('sessions').update({ casenum, datetime, place }).eq('id', id);
+                await supabaseClient.from('sessions').update({ casenum, datetime, place, attendance_type, parties_names, notification_status }).eq('id', id);
             } else {
-                await supabaseClient.from('sessions').insert([{ casenum, datetime, place }]);
+                await supabaseClient.from('sessions').insert([{ casenum, datetime, place, attendance_type, parties_names, notification_status }]);
             }
             resetSessionForm();
             loadSessions();
         }
 
-        function editSession(id, casenum, datetime, place) {
+        function editSession(id, casenum, datetime, place, attendance_type, parties_names, notification_status) {
             document.getElementById('session-id').value = id;
             document.getElementById('session-case').value = casenum;
             document.getElementById('session-datetime').value = datetime;
             document.getElementById('session-place').value = place;
+            document.getElementById('session-attendance-type').value = attendance_type;
+            document.getElementById('session-parties-names').value = parties_names;
+            document.getElementById('session-notification-status').value = notification_status;
             document.getElementById('session-submit-btn').innerHTML = '<i class="fas fa-save"></i> تحديث الموعد سحابياً';
             document.getElementById('session-cancel-btn').classList.remove('hidden');
         }
@@ -383,6 +519,35 @@
             document.getElementById('session-id').value = '';
             document.getElementById('session-submit-btn').innerHTML = '<i class="fas fa-plus"></i> إضافة موعد سحابياً';
             document.getElementById('session-cancel-btn').classList.add('hidden');
+        }
+
+        // --- 3. توليد ومعاينة محاضر الصلح وعدم الصلح للطباعة ---
+        function generateReport() {
+            const type = document.getElementById('report-type').value;
+            const casenum = document.getElementById('report-case-num').value || '---';
+            const party1 = document.getElementById('report-party1').value || '---';
+            const party2 = document.getElementById('report-party2').value || '---';
+            const details = document.getElementById('report-details').value || '---';
+            
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('ar-DZ');
+            const timeStr = now.toLocaleTimeString('ar-DZ', {hour: '2-digit', minute:'2-digit'});
+
+            document.getElementById('p-date').innerText = dateStr;
+            document.getElementById('p-time').innerText = timeStr;
+            document.getElementById('p-party1').innerText = party1;
+            document.getElementById('p-party2').innerText = party2;
+            document.getElementById('p-casenum').innerText = casenum;
+
+            if(type === 'صلح') {
+                document.getElementById('print-title').innerText = "محضر صلح قضائي نهائي";
+                document.getElementById('p-body-text').innerHTML = `بعد مساعي الوساطة القضائية الحثيثة وتقريب وجهات النظر، توصل الطرفان إلى اتفاق ودي شامل حول النزاع موضوع القضية، وتجسد ذلك بالاتفاق الآتي:<br><br><b>بنود الصلح واتفاق الطرفين:</b> ${details}<br><br>وعليه أُثبت هذا المحضر لإقراره وفقاً للتشريع المعمول به.`;
+            } else {
+                document.getElementById('print-title').innerText = "محضر عدم الصلح القضائي";
+                document.getElementById('p-body-text').innerHTML = `بعد استنفار كافة جهود الوساطة القضائية وتقريب وجهات النظر بين الطرفين، تعذر الوصول إلى تسوية ودية للنزاع، حيث صرح الطرفان (أو أحدهما) بما يلي:<br><br><b>أسباب تعذر الصلح:</b> ${details}<br><br>وعليه أُثبت هذا المحضر لإثبات حالة عدم الصلح واستئناف الإجراءات القضائية الاعتيادية.`;
+            }
+
+            window.print();
         }
 
         // --- حذف عام سحابي ---
@@ -395,4 +560,3 @@
     </script>
 </body>
 </html>
-           
