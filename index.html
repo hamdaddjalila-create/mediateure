@@ -28,9 +28,9 @@
     <div id="config-modal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 hidden">
         <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4">
             <h2 class="text-xl font-bold text-emerald-900 flex items-center gap-2">
-                <i class="fas fa-database text-emerald-600"></i> إعداد الربط السحابي
+                <i class="fas fa-database text-emerald-600"></i> إعداد الربط السحابي (Supabase)
             </h2>
-            <p class="text-sm text-gray-600">أدخل بيانات مشروعك في Supabase لضمان المزامنة بين الحاسوب والهاتف:</p>
+            <p class="text-sm text-gray-600">أدخل بيانات مشروعك لضمان حفظ القضايا والمزامنة:</p>
             <div>
                 <label class="block text-xs font-semibold mb-1">Project URL</label>
                 <input type="text" id="supabase-url" value="https://mojagltjszwipxwolxpi.supabase.co" class="w-full border rounded-lg p-2.5 text-sm bg-gray-50 focus:ring-2 focus:ring-emerald-500 outline-none">
@@ -40,7 +40,7 @@
                 <input type="password" id="supabase-key" placeholder="الصق المفتاح هنا..." class="w-full border rounded-lg p-2.5 text-sm bg-gray-50 focus:ring-2 focus:ring-emerald-500 outline-none">
             </div>
             <button onclick="saveConfig()" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-2.5 rounded-lg transition">
-                حفظ وبدء المزامنة الفورية
+                حفظ وبدء العمل السحابي
             </button>
         </div>
     </div>
@@ -48,7 +48,7 @@
     <!-- التطبيق الرئيسي -->
     <div id="app" class="min-h-screen flex flex-col">
         
-        <!-- شريط علوي يحاكي ألوان علم الجزائر وميزان العدالة -->
+        <!-- شريط علوي -->
         <div class="bg-emerald-950 text-white shadow-xl border-b-4 border-amber-500">
             <div class="h-2 w-full flex">
                 <div class="w-1/3 bg-emerald-600"></div>
@@ -62,7 +62,7 @@
                        <div class="w-16 h-16 bg-gradient-to-br from-amber-400 to-amber-600 rounded-2xl flex items-center justify-center text-emerald-950 text-3xl font-extrabold shadow-lg border-2 border-amber-300">
                            <i class="fas fa-balance-scale"></i>
                        </div>
-                       <span class="absolute -bottom-1 -right-1 bg-red-600 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold shadow" title="الجمهورية الجزائرية">DZ</span>
+                       <span class="absolute -bottom-1 -right-1 bg-red-600 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold shadow">DZ</span>
                    </div>
                    <div>
                        <p class="text-xs text-amber-300 font-bold tracking-widest flex items-center justify-center md:justify-start gap-1.5">
@@ -75,7 +75,7 @@
                 </div>
                 <div class="flex flex-col items-center md:items-end gap-2">
                       <span class="bg-emerald-900/90 text-xs px-3 py-1.5 rounded-full text-amber-300 border border-amber-400/30 font-semibold flex items-center gap-1.5 shadow-inner">
-                          <i class="fas fa-sync-alt fa-spin"></i> متزامن سحابياً 100%
+                          <i class="fas fa-sync-alt fa-spin"></i> متصل بالسحابة وتليجرام
                       </span>
                       <button onclick="openConfig()" class="text-xs text-amber-300 hover:text-amber-400 underline flex items-center gap-1 mt-1">
                           <i class="fas fa-cog"></i> إعدادات السحابة
@@ -84,7 +84,7 @@
             </div>
         </div>
  
-        <!-- أزرار التنقل الرئيسية -->
+        <!-- أزرار التنقل -->
         <nav class="bg-white shadow-sm border-b px-4 py-3 no-print">
             <div class="max-w-6xl mx-auto flex flex-wrap gap-2 justify-center md:justify-start">
                <button onclick="switchTab('cases')" id="btn-cases" class="tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-emerald-700 text-white shadow transition flex items-center gap-2">
@@ -391,31 +391,30 @@
         </main>
     </div>
  
-    <!-- الكود البرمجي التنفيذي مع دمج نظام تنبيهات تليجرام -->
+    <!-- الكود البرمجي التنفيذي -->
     <script>
-        // إعدادات البوت والـ Chat ID الخاص بك
         const TELEGRAM_BOT_TOKEN = "9156328724:AAE6U_D1LAGlw-J43dCcVSUugu3AD4o02_U";
         const TELEGRAM_CHAT_ID = "9004777469";
 
-        // دالة إرسال الإشعارات التلقائية عبر تليجرام
         function sendTelegramAlert(messageText) {
             const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(messageText)}`;
-            fetch(url).catch(error => console.error("خطأ في إرسال التنبيه:", error));
+            fetch(url).catch(error => console.error("خطأ في تليجرام:", error));
         }
 
         let supabaseClient = null;
  
         window.onload = function() {
-            // إرسال إشعار فوري عند فتح التطبيق أو تشغيله
-            sendTelegramAlert("🚀 تنبيه: تم تشغيل تطبيق 'محفظة الوسيط القضائي' بنجاح.");
-
-            const url = localStorage.getItem('sb_url');
+            sendTelegramAlert("🚀 تم تشغيل التطبيق بنجاح.");
+            
+            const url = localStorage.getItem('sb_url') || document.getElementById('supabase-url').value;
             const key = localStorage.getItem('sb_key');
-            if (url && key) {
-               initSupabase(url, key);
+            
+            if (key) {
+                initSupabase(url, key);
             } else {
-               document.getElementById('config-modal').classList.remove('hidden');
+                document.getElementById('config-modal').classList.remove('hidden');
             }
+            
             const now = new Date();
             now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
             document.getElementById('case-datetime').value = now.toISOString().slice(0,16);
@@ -443,7 +442,6 @@
                supabaseClient = window.supabase.createClient(url, key);
                document.getElementById('config-modal').classList.add('hidden');
                loadAllData();
-               setInterval(loadAllData, 3000); 
             } catch (e) {
                alert('خطأ في الاتصال بالسحابة.');
             }
@@ -456,7 +454,7 @@
                el.classList.add('bg-gray-100', 'text-gray-700');
            });
            document.getElementById('tab-' + tabId).classList.remove('hidden');
-            const activeBtn = document.getElementById('btn-' + tabId);
+           const activeBtn = document.getElementById('btn-' + tabId);
            activeBtn.classList.remove('bg-gray-100', 'text-gray-700');
            activeBtn.classList.add('bg-emerald-700', 'text-white');
         }
@@ -470,48 +468,54 @@
  
         // --- القضايا ---
         async function loadCases() {
+            if(!supabaseClient) return;
             const { data, error } = await supabaseClient.from('cases').select('*').order('id', { ascending: false });
             const tbody = document.getElementById('cases-list');
             const solvedTbody = document.getElementById('solved-list');
             if (error || !data) return;
             
-           tbody.innerHTML = '';
-           solvedTbody.innerHTML = '';
+            tbody.innerHTML = '';
+            solvedTbody.innerHTML = '';
  
-           data.forEach(c => {
+            data.forEach(c => {
                 const formattedDate = c.created_at_time ? c.created_at_time.replace('T', ' - ') : '-';
-               if(c.status === 'مفصولة / تم الصلح') {
-                   solvedTbody.innerHTML += `
-                       <tr class="border-b hover:bg-gray-50">
-                           <td class="p-3 font-bold">${c.case_num}</td>
-                           <td class="p-3">${c.parties}</td>
-                           <td class="p-3">${formattedDate}</td>
-                           <td class="p-3 text-center">
-                               <button onclick="deleteCase(${c.id})" class="text-red-600 hover:text-red-800"><i class="fas fa-trash"></i></button>
-                           </td>
-                       </tr>
-                   `;
-               } else {
-                   tbody.innerHTML += `
-                       <tr class="border-b hover:bg-gray-50">
-                           <td class="p-3 font-bold">${c.case_num}</td>
-                           <td class="p-3">${c.parties}</td>
-                           <td class="p-3">${formattedDate}</td>
-                           <td class="p-3"><span class="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded">${c.status}</span></td>
-                           <td class="p-3 text-gray-500">${c.notes || '-'}</td>
-                           <td class="p-3 text-center space-x-2 space-x-reverse">
-                               <button onclick="editCase(${c.id}, '${c.case_num}', '${c.parties}', '${c.created_at_time}', '${c.status}', '${c.notes}')" class="text-blue-600 hover:text-blue-800"><i class="fas fa-edit"></i></button>
-                               <button onclick="markAsSolved(${c.id})" class="text-emerald-600 hover:text-emerald-800" title="تمييز كمفصولة (تم الصلح)"><i class="fas fa-check-circle"></i></button>
-                               <button onclick="deleteCase(${c.id})" class="text-red-600 hover:text-red-800"><i class="fas fa-trash"></i></button>
-                           </td>
-                       </tr>
-                   `;
-               }
-           });
+                if(c.status === 'مفصولة / تم الصلح') {
+                    solvedTbody.innerHTML += `
+                        <tr class="border-b hover:bg-gray-50">
+                            <td class="p-3 font-bold">${c.case_num}</td>
+                            <td class="p-3">${c.parties}</td>
+                            <td class="p-3">${formattedDate}</td>
+                            <td class="p-3 text-center">
+                                <button onclick="deleteCase(${c.id})" class="text-red-600 hover:text-red-800"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    tbody.innerHTML += `
+                        <tr class="border-b hover:bg-gray-50">
+                            <td class="p-3 font-bold">${c.case_num}</td>
+                            <td class="p-3">${c.parties}</td>
+                            <td class="p-3">${formattedDate}</td>
+                            <td class="p-3"><span class="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded">${c.status}</span></td>
+                            <td class="p-3 text-gray-500">${c.notes || '-'}</td>
+                            <td class="p-3 text-center space-x-2 space-x-reverse">
+                                <button onclick="editCase(${c.id}, '${c.case_num}', '${c.parties}', '${c.created_at_time}', '${c.status}', '${c.notes}')" class="text-blue-600 hover:text-blue-800"><i class="fas fa-edit"></i></button>
+                                <button onclick="markAsSolved(${c.id})" class="text-emerald-600 hover:text-emerald-800" title="تمييز كمفصولة"><i class="fas fa-check-circle"></i></button>
+                                <button onclick="deleteCase(${c.id})" class="text-red-600 hover:text-red-800"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                }
+            });
         }
  
         async function saveCase(e) {
            e.preventDefault();
+           if(!supabaseClient) {
+               alert('يرجى إدخال مفتاح Supabase أولاً عبر إعدادات السحابة.');
+               openConfig();
+               return;
+           }
            const id = document.getElementById('case-id').value;
            const case_num = document.getElementById('case-num').value.trim();
            const parties = document.getElementById('case-parties').value.trim();
@@ -522,9 +526,12 @@
            if(id) {
                await supabaseClient.from('cases').update({case_num, parties, created_at_time, status, notes}).eq('id', id);
            } else {
-               await supabaseClient.from('cases').insert([{case_num, parties, created_at_time, status, notes}]);
-               // إرسال إشعار فوري عند تسجيل قضية جديدة
-               sendTelegramAlert(`📁 تنبيه: تم تسجيل قضية وساطة جديدة برقم [${case_num}] لأطراف النزاع (${parties}).`);
+               const { error } = await supabaseClient.from('cases').insert([{case_num, parties, created_at_time, status, notes}]);
+               if(error) {
+                   alert('خطأ في الحفظ السحابي: تأكد من صحة المفتاح وجداول قاعدة البيانات.');
+                   return;
+               }
+               sendTelegramAlert(`📁 تنبيه: تم تسجيل قضية جديدة [${case_num}] لأطراف النزاع (${parties}).`);
            }
            resetCaseForm();
            loadCases();
@@ -552,7 +559,7 @@
         }
  
         async function markAsSolved(id) {
-           if(confirm('هل تريد حقاً تصنيف هذه القضية كمفصولة (تم الصلح فيها)؟')) {
+           if(confirm('هل تريد تصنيف هذه القضية كمفصولة (تم الصلح فيها)؟')) {
                await supabaseClient.from('cases').update({status: 'مفصولة / تم الصلح'}).eq('id', id);
                sendTelegramAlert(`✅ تم إتمام الصلح وإغلاق القضية بنجاح.`);
                loadCases();
@@ -560,7 +567,7 @@
         }
  
         async function deleteCase(id) {
-           if(confirm('هل أنت متأكد من حذف هذه القضية نهائياً؟')) {
+           if(confirm('هل أنت متأكد من حذف هذه القضية؟')) {
                await supabaseClient.from('cases').delete().eq('id', id);
                loadCases();
            }
@@ -568,30 +575,32 @@
  
         // --- الجلسات ---
         async function loadSessions() {
+            if(!supabaseClient) return;
             const { data, error } = await supabaseClient.from('sessions').select('*').order('id', { ascending: false });
             const tbody = document.getElementById('sessions-list');
             if (error || !data) return;
-           tbody.innerHTML = '';
-           data.forEach(s => {
+            tbody.innerHTML = '';
+            data.forEach(s => {
                 const formattedDate = s.session_datetime ? s.session_datetime.replace('T', ' - ') : '-';
-               tbody.innerHTML += `
-                   <tr class="border-b hover:bg-gray-50">
-                       <td class="p-3 font-bold">${s.case_num}</td>
-                       <td class="p-3">${formattedDate}</td>
-                       <td class="p-3">${s.place}</td>
-                       <td class="p-3">${s.attendance_type} (${s.parties_names})</td>
-                       <td class="p-3"><span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">${s.notification_status}</span></td>
-                       <td class="p-3 text-center space-x-2 space-x-reverse">
-                           <button onclick="editSession(${s.id}, '${s.case_num}', '${s.session_datetime}', '${s.place}', '${s.attendance_type}', '${s.parties_names}', '${s.notification_status}')" class="text-blue-600 hover:text-blue-800"><i class="fas fa-edit"></i></button>
-                           <button onclick="deleteSession(${s.id})" class="text-red-600 hover:text-red-800"><i class="fas fa-trash"></i></button>
-                       </td>
-                   </tr>
-               `;
-           });
+                tbody.innerHTML += `
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="p-3 font-bold">${s.case_num}</td>
+                        <td class="p-3">${formattedDate}</td>
+                        <td class="p-3">${s.place}</td>
+                        <td class="p-3">${s.attendance_type} (${s.parties_names})</td>
+                        <td class="p-3"><span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">${s.notification_status}</span></td>
+                        <td class="p-3 text-center space-x-2 space-x-reverse">
+                            <button onclick="editSession(${s.id}, '${s.case_num}', '${s.session_datetime}', '${s.place}', '${s.attendance_type}', '${s.parties_names}', '${s.notification_status}')" class="text-blue-600 hover:text-blue-800"><i class="fas fa-edit"></i></button>
+                            <button onclick="deleteSession(${s.id})" class="text-red-600 hover:text-red-800"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
         }
  
         async function saveSession(e) {
            e.preventDefault();
+           if(!supabaseClient) { alert('أدخل مفتاح السحابة أولاً.'); openConfig(); return; }
            const id = document.getElementById('session-id').value;
            const case_num = document.getElementById('session-case').value.trim();
            const session_datetime = document.getElementById('session-datetime').value;
@@ -636,13 +645,12 @@
            }
         }
  
-        // --- المحاضر والطباعة والأرشيف ---
+        // --- المحاضر والطباعة ---
         function updatePreviews() {
            const now = new Date();
            const dateStr = now.toLocaleDateString('ar-DZ');
            const timeStr = now.toLocaleTimeString('ar-DZ', {hour: '2-digit', minute:'2-digit'});
            
-           // محضر الصلح
            document.getElementById('s-date').innerText = dateStr;
            document.getElementById('s-time').innerText = timeStr;
            document.getElementById('s-casenum').innerText = document.getElementById('solh-case-num').value || '---';
@@ -650,7 +658,6 @@
            document.getElementById('s-p2').innerText = document.getElementById('solh-party2').value || '---';
            document.getElementById('s-details').innerText = document.getElementById('solh-details').value || '---';
  
-           // محضر عدم الصلح
            document.getElementById('ns-date').innerText = dateStr;
            document.getElementById('ns-time').innerText = timeStr;
            document.getElementById('ns-casenum').innerText = document.getElementById('nosolh-case-num').value || '---';
@@ -664,6 +671,7 @@
         });
  
         async function saveAndPrintReport(reportType) {
+           if(!supabaseClient) { alert('أدخل مفتاح السحابة أولاً.'); openConfig(); return; }
            const isSolh = reportType === 'محضر صلح نهائي';
            const caseNum = document.getElementById(isSolh ? 'solh-case-num' : 'nosolh-case-num').value.trim();
            const party1 = document.getElementById(isSolh ? 'solh-party1' : 'nosolh-party1').value.trim();
@@ -671,7 +679,7 @@
            const details = document.getElementById(isSolh ? 'solh-details' : 'nosolh-details').value.trim();
  
            if(!caseNum || !party1 || !party2) {
-               alert('الرجاء إكمال بيانات رقم القضية وأطراف النزاع على الأقل!');
+               alert('الرجاء إكمال بيانات رقم القضية وأطراف النزاع!');
                return;
            }
  
@@ -688,48 +696,47 @@
  
            html2pdf().from(element).set(opt).save();
  
-           // حفظ في الأرشيف السحابي
-           if(supabaseClient) {
-               const now = new Date();
-               const saved_at = now.toLocaleString('ar-DZ');
-               await supabaseClient.from('reports').insert([{
-                   case_num: caseNum,
-                   report_type: reportType,
-                   parties: `${party1} ضد ${party2}`,
-                   saved_at: saved_at,
-                   details: details
-               }]);
-               sendTelegramAlert(`📄 تم حفظ وإصدار [${reportType}] للملف رقم [${caseNum}] بنجاح.`);
-               loadReports();
-           }
+           const now = new Date();
+           const saved_at = now.toLocaleString('ar-DZ');
+           await supabaseClient.from('reports').insert([{
+               case_num: caseNum,
+               report_type: reportType,
+               parties: `${party1} ضد ${party2}`,
+               saved_at: saved_at,
+               details: details
+           }]);
+           sendTelegramAlert(`📄 تم إصدار وحفظ [${reportType}] للملف رقم [${caseNum}].`);
+           loadReports();
         }
  
         async function loadReports() {
+            if(!supabaseClient) return;
             const { data, error } = await supabaseClient.from('reports').select('*').order('id', { ascending: false });
             const tbody = document.getElementById('reports-list');
             if (error || !data) return;
-           tbody.innerHTML = '';
-           data.forEach(r => {
-               tbody.innerHTML += `
-                   <tr class="border-b hover:bg-gray-50">
-                       <td class="p-3 font-bold">${r.case_num}</td>
-                       <td class="p-3"><span class="px-2 py-1 rounded text-xs ${r.report_type.includes('صلح') ? 'bg-emerald-100 text-emerald-800':'bg-red-100 text-red-800'}">${r.report_type}</span></td>
-                       <td class="p-3">${r.parties}</td>
-                       <td class="p-3 text-gray-500">${r.saved_at}</td>
-                       <td class="p-3 text-center space-x-2 space-x-reverse">
-                           <button onclick="deleteReport(${r.id})" class="text-red-600 hover:text-red-800" title="حذف من الأرشيف"><i class="fas fa-trash"></i></button>
-                       </td>
-                   </tr>
-               `;
-           });
+            tbody.innerHTML = '';
+            data.forEach(r => {
+                tbody.innerHTML += `
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="p-3 font-bold">${r.case_num}</td>
+                        <td class="p-3"><span class="px-2 py-1 rounded text-xs ${r.report_type.includes('صلح') ? 'bg-emerald-100 text-emerald-800':'bg-red-100 text-red-800'}">${r.report_type}</span></td>
+                        <td class="p-3">${r.parties}</td>
+                        <td class="p-3 text-gray-500">${r.saved_at}</td>
+                        <td class="p-3 text-center">
+                            <button onclick="deleteReport(${r.id})" class="text-red-600 hover:text-red-800"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
         }
  
         async function deleteReport(id) {
            if(confirm('هل تريد حذف هذا المحضر من الأرشيف؟')) {
-               await supabaseClient.from('reports').delete().eq('id', id);
+               await supabaseClient.from('reports').delete().eq('id, id');
                loadReports();
            }
         }
     </script>
 </body>
 </html>
+
