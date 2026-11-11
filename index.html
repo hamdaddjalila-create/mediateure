@@ -52,7 +52,7 @@
                 </div>
                 <div class="flex flex-col items-center md:items-end gap-2">
                       <span class="bg-emerald-900/90 text-xs px-3 py-1.5 rounded-full text-amber-300 border border-amber-400/30 font-semibold flex items-center gap-1.5 shadow-inner">
-                          <i class="fas fa-cloud text-amber-400"></i> نظام سحابي متصل وتليجرام مفعّل
+                          <i class="fas fa-cloud text-amber-400"></i> متصل سحابياً ومربوط بتليجرام
                       </span>
                 </div>
             </div>
@@ -365,7 +365,7 @@
         </main>
     </div>
  
-    <!-- الكود البرمجي للتخزين السحابي المحلي والتنبيهات الفورية -->
+    <!-- الكود البرمجي التنفيذي -->
     <script>
         const TELEGRAM_BOT_TOKEN = "9156328724:AAE6U_D1LAGlw-J43dCcVSUugu3AD4o02_U";
         const TELEGRAM_CHAT_ID = "9004777469";
@@ -402,7 +402,6 @@
            loadReports();
         }
 
-        // دالة مساعدة لجلب البيانات المخزنة سحابياً على المتصفح
         function getCloudData(key) {
             return JSON.parse(localStorage.getItem('wassit_' + key)) || [];
         }
@@ -692,4 +691,3 @@
     </script>
 </body>
 </html>
-
